@@ -1,0 +1,2597 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>탄성파의 이용 가상 실험실 | 고2 역학과 에너지</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- KaTeX CSS & JS CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous" />
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
+
+  <!-- Google Fonts: Noto Sans KR & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Noto Sans KR"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              900: '#1e3a8a',
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    /* 기본 레이아웃 및 가독성 최적화 */
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background-color: #f1f5f9;
+      color: #0f172a;
+      overflow-x: hidden;
+    }
+
+    /* KaTeX 인라인 수식 정렬 보정 */
+    .katex {
+      font-size: 1.03em;
+    }
+    .katex-display {
+      margin: 0.45rem 0;
+    }
+
+    /* 커스텀 슬라이더 스타일 */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      height: 8px;
+      border-radius: 999px;
+      background: #cbd5e1;
+      outline: none;
+      cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #2563eb;
+      border: 3px solid #ffffff;
+      box-shadow: 0 2px 6px rgba(37, 99, 235, 0.4);
+      transition: transform 0.15s ease, background-color 0.15s ease;
+    }
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.12);
+      background: #1d4ed8;
+    }
+
+    /* 캔버스 컨테이너 반응형 처리 */
+    .canvas-wrapper {
+      position: relative;
+      width: 100%;
+      border-radius: 0.75rem;
+      overflow: hidden;
+      background-color: #0f172a;
+      box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.35);
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+    }
+
+    /* 탭 전환 애니메이션 */
+    .tab-panel {
+      animation: fadeSlideIn 0.25s ease-out;
+    }
+    @keyframes fadeSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- 상단 헤더 -->
+  <header class="bg-slate-900 text-white border-b border-slate-800 shadow-md sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+      <div class="flex items-start sm:items-center gap-3">
+        <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center shadow-lg shrink-0">
+          <!-- 파동 아이콘 SVG -->
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M2 12c2-4 4-4 6 0s4 4 6 0 4-4 6 0 2 4 2 0" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M2 17c2-3 4-3 6 0s4 3 6 0 4-3 6 0" opacity="0.6" />
+          </svg>
+        </div>
+        <div>
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="px-2.5 py-0.5 text-xs font-bold rounded-full bg-blue-500/20 text-blue-300 border border-blue-400/30">
+              고2 역학과 에너지
+            </span>
+            <span class="text-xs text-slate-400 math-static">
+              핵심 원리: $v = f\lambda$, 반사·굴절
+            </span>
+          </div>
+          <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight mt-0.5">
+            탄성파의 이용 가상 실험실
+          </h1>
+        </div>
+      </div>
+
+      <!-- 우측 유틸리티 버튼 -->
+      <div class="flex flex-wrap items-center gap-2">
+        <button id="btn-sound-toggle" type="button"
+          class="px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition flex items-center gap-1.5">
+          <span id="sound-icon">🔇</span>
+          <span id="sound-label">펄스 효과음 꺼짐</span>
+        </button>
+        <button id="btn-theory-modal" type="button"
+          class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-blue-600 hover:bg-blue-500 text-white shadow transition flex items-center gap-1.5">
+          <span>📘</span>
+          <span>관련 이론 공식</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 3단 교과 사례 탭 내비게이션 -->
+    <div class="bg-slate-950/70 border-t border-slate-800">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 flex overflow-x-auto gap-1.5 py-2" role="tablist">
+        <button type="button" role="tab" data-tab="ultrasound"
+          class="tab-btn active flex-1 min-w-[175px] px-4 py-2.5 rounded-xl text-sm font-bold transition flex items-center justify-center gap-2 bg-blue-600 text-white shadow">
+          <span class="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center text-xs">1</span>
+          <span>초음파 영상 진단 장치</span>
+        </button>
+        <button type="button" role="tab" data-tab="ndt"
+          class="tab-btn flex-1 min-w-[175px] px-4 py-2.5 rounded-xl text-sm font-bold transition flex items-center justify-center gap-2 bg-slate-800/80 text-slate-300 hover:bg-slate-800 hover:text-white">
+          <span class="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center text-xs">2</span>
+          <span>구조물 비파괴 검사</span>
+        </button>
+        <button type="button" role="tab" data-tab="seismic"
+          class="tab-btn flex-1 min-w-[175px] px-4 py-2.5 rounded-xl text-sm font-bold transition flex items-center justify-center gap-2 bg-slate-800/80 text-slate-300 hover:bg-slate-800 hover:text-white">
+          <span class="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center text-xs">3</span>
+          <span>지하나 바닷속 탐사</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 메인 작업 영역 -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-5">
+
+    <!-- ===================================================================== -->
+    <!-- [탭 1] 초음파 영상 진단 장치 -->
+    <!-- ===================================================================== -->
+    <section id="panel-ultrasound" class="tab-panel grid grid-cols-1 lg:grid-cols-12 gap-5">
+      <!-- 좌측 시각화 영역 (7 cols) -->
+      <div class="lg:col-span-7 flex flex-col gap-4">
+        <!-- 상단 단면 시뮬레이션 캔버스 -->
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-2.5">
+            <div>
+              <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-cyan-500"></span>
+                <span>인체 단면 초음파 전파 및 반사 시뮬레이션</span>
+              </h2>
+              <p class="text-xs text-slate-500 math-static">
+                탐촉자를 좌우로 드래그하여 진동수 $f$에 따른 파장 $\lambda$ 변화와 반사파 왕복 시간 $\Delta t$를 관찰하세요.
+              </p>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <button id="us-btn-pulse" type="button"
+                class="px-3 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold shadow-sm transition">
+                단일 펄스 발사
+              </button>
+              <button id="us-btn-toggle" type="button"
+                class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-300 transition">
+                일시정지
+              </button>
+            </div>
+          </div>
+          <div class="canvas-wrapper h-[270px] sm:h-[310px]">
+            <canvas id="canvas-us-anatomy"></canvas>
+          </div>
+        </div>
+
+        <!-- 하단 초음파 진단 모니터 (B-Mode 영상) -->
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-2.5">
+            <div>
+              <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                <span>초음파 진단 장치 모니터 (반사파 세기 영상)</span>
+              </h3>
+              <p class="text-xs text-slate-500 math-static">
+                진동수 $f$가 높을수록 파장 $\lambda$가 짧아 해상도가 선명해지지만, 깊은 곳까지 투과하기 어렵습니다.
+              </p>
+            </div>
+            <span id="us-quality-badge" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200"></span>
+          </div>
+          <div class="canvas-wrapper h-[210px] sm:h-[235px]">
+            <canvas id="canvas-us-monitor"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- 우측 제어 및 탐구 영역 (5 cols) -->
+      <div class="lg:col-span-5 flex flex-col gap-4">
+        <!-- 실험 조건 제어 카드 -->
+        <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col gap-4">
+          <h3 class="text-base font-bold text-slate-800 border-b border-slate-100 pb-2.5">
+            실험 조건 제어
+          </h3>
+
+          <!-- 검사 목적 프리셋 -->
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-2 math-static">
+              진단 목적별 진동수 $f$ 프리셋 ($2\text{ MHz} \sim 13\text{ MHz}$)
+            </label>
+            <div class="grid grid-cols-3 gap-2">
+              <button type="button" data-us-freq="3.5"
+                class="us-preset-btn p-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-blue-50 hover:border-blue-300 text-left transition">
+                <div class="text-xs font-bold text-slate-800">심부 복부 장기</div>
+                <div class="text-xs text-blue-600 font-semibold mt-0.5 math-static">$f = 3.5\text{ MHz}$</div>
+              </button>
+              <button type="button" data-us-freq="6.5"
+                class="us-preset-btn p-2.5 rounded-xl border-2 border-blue-500 bg-blue-50 text-left transition">
+                <div class="text-xs font-bold text-slate-800">표준 산부인과</div>
+                <div class="text-xs text-blue-600 font-semibold mt-0.5 math-static">$f = 6.5\text{ MHz}$</div>
+              </button>
+              <button type="button" data-us-freq="11.0"
+                class="us-preset-btn p-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-blue-50 hover:border-blue-300 text-left transition">
+                <div class="text-xs font-bold text-slate-800">태아 정밀 관찰</div>
+                <div class="text-xs text-blue-600 font-semibold mt-0.5 math-static">$f = 11.0\text{ MHz}$</div>
+              </button>
+            </div>
+          </div>
+
+          <!-- 진동수 슬라이더 -->
+          <div>
+            <div class="flex justify-between items-center mb-1.5">
+              <span class="text-xs font-bold text-slate-700 math-static">초음파 진동수 $f$ 조절</span>
+              <span id="us-freq-val" class="text-sm font-bold text-blue-600"></span>
+            </div>
+            <input id="us-freq-slider" type="range" min="2.0" max="13.0" step="0.5" value="6.5" class="w-full" />
+            <div class="flex justify-between text-[11px] text-slate-400 mt-1 math-static">
+              <span>$2.0\text{ MHz}$ (긴 파장 $\lambda$, 깊은 투과)</span>
+              <span>$13.0\text{ MHz}$ (짧은 파장 $\lambda$, 고해상도)</span>
+            </div>
+          </div>
+
+          <!-- 검사 대상 선택 -->
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-2">검사 대상 단면 선택</label>
+            <div class="grid grid-cols-3 gap-2">
+              <button type="button" data-us-target="fetus"
+                class="us-target-btn py-2 px-2.5 rounded-xl text-xs font-bold border-2 border-cyan-600 bg-cyan-50 text-cyan-800 transition">
+                정상 태아 단면
+              </button>
+              <button type="button" data-us-target="organ_normal"
+                class="us-target-btn py-2 px-2.5 rounded-xl text-xs font-bold border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 transition">
+                복부 장기(정상)
+              </button>
+              <button type="button" data-us-target="organ_stone"
+                class="us-target-btn py-2 px-2.5 rounded-xl text-xs font-bold border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 transition">
+                담석 이상 유무
+              </button>
+            </div>
+          </div>
+
+          <!-- 탐촉자 위치 슬라이더 -->
+          <div>
+            <div class="flex justify-between items-center mb-1.5">
+              <span class="text-xs font-bold text-slate-700 math-static">탐촉자 수평 위치 $x$</span>
+              <span id="us-pos-val" class="text-xs font-semibold text-slate-600"></span>
+            </div>
+            <input id="us-pos-slider" type="range" min="15" max="85" step="1" value="50" class="w-full" />
+          </div>
+        </div>
+
+        <!-- 실시간 물리량 계측판 -->
+        <div class="bg-slate-900 text-white rounded-2xl p-5 shadow-sm border border-slate-800">
+          <h3 class="text-sm font-bold text-cyan-300 mb-3 flex items-center justify-between">
+            <span>실시간 물리량 계측 결과</span>
+            <span class="text-[11px] font-normal text-slate-400 math-static">연부 조직 속력 $v = 1540\text{ m/s}$</span>
+          </h3>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="bg-slate-800/90 rounded-xl p-3 border border-slate-700/70">
+              <div class="text-[11px] text-slate-400 math-static">초음파 파장 $\lambda = \frac{v}{f}$</div>
+              <div id="us-metric-lambda" class="text-base font-bold text-white mt-1"></div>
+            </div>
+            <div class="bg-slate-800/90 rounded-xl p-3 border border-slate-700/70">
+              <div class="text-[11px] text-slate-400 math-static">최대 유효 투과 깊이 $d_{\max}$</div>
+              <div id="us-metric-pen" class="text-base font-bold text-amber-300 mt-1"></div>
+            </div>
+            <div class="bg-slate-800/90 rounded-xl p-3 border border-slate-700/70">
+              <div class="text-[11px] text-slate-400 math-static">반사파 왕복 시간 $\Delta t$</div>
+              <div id="us-metric-dt" class="text-base font-bold text-emerald-300 mt-1"></div>
+            </div>
+            <div class="bg-slate-800/90 rounded-xl p-3 border border-slate-700/70">
+              <div class="text-[11px] text-slate-400 math-static">측정 경계 깊이 $d = \frac{1}{2}v\Delta t$</div>
+              <div id="us-metric-depth" class="text-base font-bold text-cyan-300 mt-1"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 교과 개념 및 탐구 확인 문제 -->
+        <div class="bg-amber-50/90 rounded-2xl p-4 border border-amber-200/80">
+          <div class="text-xs font-extrabold text-amber-900 mb-1.5">교과 개념 원리 설명 &amp; 확인 문제</div>
+          <p class="text-xs text-slate-700 leading-relaxed mb-2.5 math-static">
+            $2\text{ MHz} \sim 13\text{ MHz}$의 초음파를 몸속으로 보내 경계면에서 반사된 초음파의 왕복 시간 $\Delta t$와 세기를 측정하여 태아의 건강 상태나 복부 내 장기의 이상 유무를 영상으로 확인합니다.
+          </p>
+          <details class="bg-white rounded-xl p-3 border border-amber-200">
+            <summary class="text-xs font-bold text-blue-700 cursor-pointer select-none">
+              [확인 문제] 현재 계측된 반사파 왕복 시간으로 깊이 계산하기
+            </summary>
+            <div id="us-quiz-content" class="mt-2 pt-2 border-t border-slate-100 text-xs text-slate-700 leading-relaxed"></div>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- [탭 2] 구조물 비파괴 검사 -->
+    <!-- ===================================================================== -->
+    <section id="panel-ndt" class="tab-panel hidden grid grid-cols-1 lg:grid-cols-12 gap-5">
+      <!-- 좌측 시각화 영역 (7 cols) -->
+      <div class="lg:col-span-7 flex flex-col gap-4">
+        <!-- 상단 구조물 단면 캔버스 -->
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-2.5">
+            <div>
+              <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                <span>대형 구조물 내부 탄성파 펄스 반사 시뮬레이션</span>
+              </h2>
+              <p class="text-xs text-slate-500 math-static">
+                탐촉자를 드래그하거나 자동 스캔을 실행하여 결함 부위에서 조기 반사파($P_d$)가 발생하는 과정을 확인하세요.
+              </p>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <button id="ndt-btn-autoscan" type="button"
+                class="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold shadow-sm transition">
+                자동 스캔 시작
+              </button>
+              <button id="ndt-btn-pulse" type="button"
+                class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-300 transition">
+                펄스 재발사
+              </button>
+            </div>
+          </div>
+          <div class="canvas-wrapper h-[260px] sm:h-[295px]">
+            <canvas id="canvas-ndt-beam"></canvas>
+          </div>
+        </div>
+
+        <!-- 하단 오실로스코프 (A-Scan 계측기 화면) -->
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-2.5">
+            <div>
+              <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-lime-500"></span>
+                <span class="math-static">비파괴 검사 계측기 오실로스코프 (시간 $t$ – 반사파 진폭 $A$)</span>
+              </h3>
+              <p class="text-xs text-slate-500 math-static">
+                송신 펄스($P_0$), 결함 반사파($P_d$), 바닥면 반사파($P_b$)의 도달 시간 차이를 분석합니다.
+              </p>
+            </div>
+            <span id="ndt-status-badge" class="px-2.5 py-1 rounded-lg text-xs font-bold"></span>
+          </div>
+          <div class="canvas-wrapper h-[220px] sm:h-[245px]">
+            <canvas id="canvas-ndt-scope"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- 우측 제어 및 탐구 영역 (5 cols) -->
+      <div class="lg:col-span-5 flex flex-col gap-4">
+        <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col gap-4">
+          <h3 class="text-base font-bold text-slate-800 border-b border-slate-100 pb-2.5">
+            검사 대상 구조물 및 결함 설정
+          </h3>
+
+          <!-- 구조물 매질 선택 -->
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-2 math-static">
+              검사 대상물 재질 (탄성파 속력 $v$ 및 두께 $H = 120\text{ mm}$)
+            </label>
+            <div class="grid grid-cols-3 gap-2">
+              <button type="button" data-ndt-mat="steel"
+                class="ndt-mat-btn p-2.5 rounded-xl border-2 border-blue-500 bg-blue-50 text-left transition">
+                <div class="text-xs font-bold text-slate-800">철강 교량</div>
+                <div class="text-[11px] text-blue-700 font-semibold mt-0.5 math-static">$v = 5900\text{ m/s}$</div>
+              </button>
+              <button type="button" data-ndt-mat="aluminum"
+                class="ndt-mat-btn p-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-blue-50 text-left transition">
+                <div class="text-xs font-bold text-slate-800">항공기 합금</div>
+                <div class="text-[11px] text-blue-700 font-semibold mt-0.5 math-static">$v = 6300\text{ m/s}$</div>
+              </button>
+              <button type="button" data-ndt-mat="concrete"
+                class="ndt-mat-btn p-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-blue-50 text-left transition">
+                <div class="text-xs font-bold text-slate-800">콘크리트 건물</div>
+                <div class="text-[11px] text-blue-700 font-semibold mt-0.5 math-static">$v = 4000\text{ m/s}$</div>
+              </button>
+            </div>
+          </div>
+
+          <!-- 시편 상태 프리셋 -->
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-2">내부 결함 시나리오 선택</label>
+            <div class="grid grid-cols-2 gap-2">
+              <button type="button" data-ndt-defect="none"
+                class="ndt-defect-btn py-2 px-3 rounded-xl text-xs font-bold border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 text-left transition">
+                ① 정상 구조물 (결함 없음)
+              </button>
+              <button type="button" data-ndt-defect="shallow"
+                class="ndt-defect-btn py-2 px-3 rounded-xl text-xs font-bold border-2 border-amber-500 bg-amber-50 text-amber-900 text-left transition">
+                ② 얕은 내부 균열
+              </button>
+              <button type="button" data-ndt-defect="deep"
+                class="ndt-defect-btn py-2 px-3 rounded-xl text-xs font-bold border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 text-left transition">
+                ③ 깊은 대형 기공
+              </button>
+              <button type="button" data-ndt-defect="mystery"
+                class="ndt-defect-btn py-2 px-3 rounded-xl text-xs font-bold border border-purple-200 bg-purple-50 text-purple-900 hover:bg-purple-100 text-left transition">
+                ④ 미지의 결함 찾기 (숨김)
+              </button>
+            </div>
+          </div>
+
+          <!-- 탐촉자 위치 슬라이더 -->
+          <div>
+            <div class="flex justify-between items-center mb-1.5">
+              <span class="text-xs font-bold text-slate-700 math-static">탐촉자 스캔 위치 $x$</span>
+              <span id="ndt-pos-val" class="text-xs font-semibold text-slate-600"></span>
+            </div>
+            <input id="ndt-pos-slider" type="range" min="4" max="96" step="1" value="48" class="w-full" />
+          </div>
+
+          <!-- 미지의 결함 찾기 퀴즈 미션 패널 -->
+          <div id="ndt-mystery-box" class="hidden bg-purple-50 rounded-xl p-3.5 border border-purple-200 space-y-2.5">
+            <div class="flex items-center justify-between gap-2">
+              <div class="text-xs font-extrabold text-purple-900 math-static">
+                🏆 [수업 퀴즈] 결함 구역과 깊이 $d$ 발표하기
+              </div>
+              <button id="ndt-new-mystery-btn" type="button"
+                class="px-2.5 py-1 rounded-lg bg-purple-200/80 hover:bg-purple-300/80 text-purple-950 text-[11px] font-bold transition">
+                새 문제 출제
+              </button>
+            </div>
+            <p class="text-[11px] text-purple-800 leading-relaxed math-static">
+              탐촉자로 `A`~`J` 구역을 스캔하여 오실로스코프에 조기 반사파($P_d$)가 나타나는 <strong>결함 구역</strong>을 찾고, $\Delta t_d$를 읽어 깊이 $d = \frac{1}{2}v\Delta t_d$를 발표해 보세요!
+            </p>
+
+            <!-- 1단계: 구역 선택 버튼 (10개 세분화 구역 A~J) -->
+            <div>
+              <div class="text-[11px] font-bold text-purple-900 mb-1">1단계. 결함이 있는 구역 선택 (A~J 구역)</div>
+              <div class="grid grid-cols-5 gap-1.5">
+                <button type="button" data-ndt-zone="A"
+                  class="ndt-zone-btn py-1.5 rounded-lg text-xs font-extrabold border border-purple-300 bg-white text-purple-900 hover:bg-purple-100 transition">
+                  A 구역
+                </button>
+                <button type="button" data-ndt-zone="B"
+                  class="ndt-zone-btn py-1.5 rounded-lg text-xs font-extrabold border border-purple-300 bg-white text-purple-900 hover:bg-purple-100 transition">
+                  B 구역
+                </button>
+                <button type="button" data-ndt-zone="C"
+                  class="ndt-zone-btn py-1.5 rounded-lg text-xs font-extrabold border border-purple-300 bg-white text-purple-900 hover:bg-purple-100 transition">
+                  C 구역
+                </button>
+                <button type="button" data-ndt-zone="D"
+                  class="ndt-zone-btn py-1.5 rounded-lg text-xs font-extrabold border border-purple-300 bg-white text-purple-900 hover:bg-purple-100 transition">
+                  D 구역
+                </button>
+                <button type="button" data-ndt-zone="E"
+                  class="ndt-zone-btn py-1.5 rounded-lg text-xs font-extrabold border border-purple-300 bg-white text-purple-900 hover:bg-purple-100 transition">
+                  E 구역
+                </button>
+                <button type="button" data-ndt-zone="F"
+                  class="ndt-zone-btn py-1.5 rounded-lg text-xs font-extrabold border border-purple-300 bg-white text-purple-900 hover:bg-purple-100 transition">
+                  F 구역
+                </button>
+                <button type="button" data-ndt-zone="G"
+                  class="ndt-zone-btn py-1.5 rounded-lg text-xs font-extrabold border border-purple-300 bg-white text-purple-900 hover:bg-purple-100 transition">
+                  G 구역
+                </button>
+                <button type="button" data-ndt-zone="H"
+                  class="ndt-zone-btn py-1.5 rounded-lg text-xs font-extrabold border border-purple-300 bg-white text-purple-900 hover:bg-purple-100 transition">
+                  H 구역
+                </button>
+                <button type="button" data-ndt-zone="I"
+                  class="ndt-zone-btn py-1.5 rounded-lg text-xs font-extrabold border border-purple-300 bg-white text-purple-900 hover:bg-purple-100 transition">
+                  I 구역
+                </button>
+                <button type="button" data-ndt-zone="J"
+                  class="ndt-zone-btn py-1.5 rounded-lg text-xs font-extrabold border border-purple-300 bg-white text-purple-900 hover:bg-purple-100 transition">
+                  J 구역
+                </button>
+              </div>
+            </div>
+
+            <!-- 2단계: 깊이 입력 및 정답 확인/공개 -->
+            <div>
+              <div class="text-[11px] font-bold text-purple-900 mb-1 math-static">2단계. 결함 깊이 $d$ 입력 (선택) 및 정답 확인</div>
+              <div class="flex items-center gap-1.5">
+                <input id="ndt-guess-input" type="number" step="0.1" placeholder="깊이 d (mm)"
+                  class="w-full px-3 py-1.5 rounded-lg border border-purple-300 text-xs font-mono bg-white focus:outline-none focus:ring-2 focus:ring-purple-500" />
+                <button id="ndt-guess-btn" type="button"
+                  class="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold shrink-0 transition">
+                  정답 확인
+                </button>
+                <button id="ndt-reveal-btn" type="button"
+                  class="px-2.5 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold shrink-0 transition">
+                  정답 공개
+                </button>
+              </div>
+            </div>
+
+            <div id="ndt-guess-feedback" class="text-xs font-medium leading-relaxed"></div>
+          </div>
+        </div>
+
+        <!-- 실시간 계측판 -->
+        <div class="bg-slate-900 text-white rounded-2xl p-5 shadow-sm border border-slate-800">
+          <h3 class="text-sm font-bold text-amber-300 mb-3 flex items-center justify-between">
+            <span>오실로스코프 정밀 계측값</span>
+            <span id="ndt-mat-speed-label" class="text-[11px] font-normal text-slate-400"></span>
+          </h3>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="bg-slate-800/90 rounded-xl p-3 border border-slate-700/70">
+              <div class="text-[11px] text-slate-400 math-static">바닥면 반사 시간 $\Delta t_b$</div>
+              <div id="ndt-metric-tb" class="text-base font-bold text-emerald-300 mt-1"></div>
+            </div>
+            <div class="bg-slate-800/90 rounded-xl p-3 border border-slate-700/70">
+              <div class="text-[11px] text-slate-400 math-static">구조물 전체 두께 $H$</div>
+              <div id="ndt-metric-h" class="text-base font-bold text-white mt-1"></div>
+            </div>
+            <div class="bg-slate-800/90 rounded-xl p-3 border border-slate-700/70">
+              <div class="text-[11px] text-slate-400 math-static">결함 반사 시간 $\Delta t_d$</div>
+              <div id="ndt-metric-td" class="text-base font-bold text-rose-400 mt-1"></div>
+            </div>
+            <div class="bg-slate-800/90 rounded-xl p-3 border border-slate-700/70">
+              <div class="text-[11px] text-slate-400 math-static">결함 깊이 $d = \frac{1}{2}v\Delta t_d$</div>
+              <div id="ndt-metric-d" class="text-base font-bold text-amber-300 mt-1"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 교과 개념 설명 -->
+        <div class="bg-amber-50/90 rounded-2xl p-4 border border-amber-200/80">
+          <div class="text-xs font-extrabold text-amber-900 mb-1">교과 개념 원리 설명</div>
+          <p class="text-xs text-slate-700 leading-relaxed math-static">
+            비행기, 다리, 건물 등 대형 구조물을 파괴하지 않고 탄성파를 입사시키면, 내부의 균열이나 기공 경계면에서 탄성파가 먼저 반사($\Delta t_d &lt; \Delta t_b$)되어 돌아옵니다. 이를 분석하면 결함의 위치와 깊이 $d$를 정확히 찾아낼 수 있습니다.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- [탭 3] 지하나 바닷속 탐사 -->
+    <!-- ===================================================================== -->
+    <section id="panel-seismic" class="tab-panel hidden grid grid-cols-1 lg:grid-cols-12 gap-5">
+      <!-- 좌측 시각화 영역 (7 cols) -->
+      <div class="lg:col-span-7 flex flex-col gap-4">
+        <!-- 상단 해양 및 지하 지층 단면 시뮬레이션 -->
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-2.5">
+            <div>
+              <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
+                <span>인공 지진파를 이용한 해저·지하 지질 탐사 시뮬레이션</span>
+              </h2>
+              <p class="text-xs text-slate-500 math-static">
+                지층 경계면에서 일어나는 지진파의 반사($\theta_i = \theta_r$)와 굴절($\frac{\sin\theta_1}{\sin\theta_2} = \frac{v_1}{v_2}$)을 관찰하세요.
+              </p>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <button id="seis-btn-shoot" type="button"
+                class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-sm transition">
+                인공 지진파 발사
+              </button>
+              <button id="seis-btn-toggle" type="button"
+                class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-300 transition">
+                일시정지
+              </button>
+            </div>
+          </div>
+          <div class="canvas-wrapper h-[285px] sm:h-[325px]">
+            <canvas id="canvas-seis-cross"></canvas>
+          </div>
+        </div>
+
+        <!-- 하단 다중 지진파 탐지기 기록 및 지질 구조도 -->
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-2.5">
+            <div>
+              <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-sky-500"></span>
+                <span class="math-static">다중 탐지기($R_1 \sim R_6$) 수신 기록 및 지하 지질 구조도</span>
+              </h3>
+              <p class="text-xs text-slate-500 math-static">
+                각 탐지기에 반사파가 도달한 시간 $t$를 분석하여 하부 지층의 깊이와 자원 매장 구조를 복원합니다.
+              </p>
+            </div>
+          </div>
+          <div class="canvas-wrapper h-[215px] sm:h-[235px]">
+            <canvas id="canvas-seis-record"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- 우측 제어 및 탐구 영역 (5 cols) -->
+      <div class="lg:col-span-5 flex flex-col gap-4">
+        <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col gap-4">
+          <h3 class="text-base font-bold text-slate-800 border-b border-slate-100 pb-2.5">
+            탐사 과정 단계별 제어 및 지층 설정
+          </h3>
+
+          <!-- 교과서 4단계 흐름 제어 -->
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-2">
+              교과서 탐사 원리 4단계 보기
+            </label>
+            <div class="grid grid-cols-1 gap-1.5">
+              <button type="button" data-seis-step="0"
+                class="seis-step-btn py-2 px-3 rounded-xl text-xs font-bold border-2 border-indigo-500 bg-indigo-50 text-indigo-900 text-left transition flex items-center justify-between">
+                <span>전체 과정 연속 자동 시뮬레이션</span>
+                <span class="text-[11px] px-2 py-0.5 rounded bg-indigo-200/70">자동</span>
+              </button>
+              <button type="button" data-seis-step="1"
+                class="seis-step-btn py-2 px-3 rounded-xl text-xs font-bold border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 text-left transition">
+                ❶ 인공 지진파 발생 (탐사선 음원 발사)
+              </button>
+              <button type="button" data-seis-step="2"
+                class="seis-step-btn py-2 px-3 rounded-xl text-xs font-bold border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 text-left transition">
+                ❷ 하부 지층 경계면에서 지진파 반사 및 굴절
+              </button>
+              <button type="button" data-seis-step="3"
+                class="seis-step-btn py-2 px-3 rounded-xl text-xs font-bold border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 text-left transition">
+                ❸ 지진파 탐지기로 반사파 감지
+              </button>
+              <button type="button" data-seis-step="4"
+                class="seis-step-btn py-2 px-3 rounded-xl text-xs font-bold border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 text-left transition">
+                ❹ 다중 신호 수신 및 지하 지질 구조도 완성
+              </button>
+            </div>
+          </div>
+
+          <!-- 지질 구조 프리셋 -->
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-2">해저 지질 구조 모델 선택</label>
+            <div class="grid grid-cols-3 gap-2">
+              <button type="button" data-seis-geo="flat"
+                class="seis-geo-btn p-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-indigo-50 text-left transition">
+                <div class="text-xs font-bold text-slate-800">수평 퇴적층</div>
+                <div class="text-[11px] text-slate-500 mt-0.5">균일한 층리</div>
+              </button>
+              <button type="button" data-seis-geo="anticline"
+                class="seis-geo-btn p-2.5 rounded-xl border-2 border-indigo-500 bg-indigo-50 text-left transition">
+                <div class="text-xs font-bold text-slate-800">배사 구조</div>
+                <div class="text-[11px] text-indigo-700 font-semibold mt-0.5">석유·천연가스</div>
+              </button>
+              <button type="button" data-seis-geo="hydrate"
+                class="seis-geo-btn p-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-indigo-50 text-left transition">
+                <div class="text-xs font-bold text-slate-800">해저 매장층</div>
+                <div class="text-[11px] text-indigo-700 font-semibold mt-0.5">가스 하이드레이트</div>
+              </button>
+            </div>
+          </div>
+
+          <!-- 시각화 표시 옵션 -->
+          <div class="flex items-center justify-between pt-1">
+            <span class="text-xs font-bold text-slate-700">파동 표현 방식</span>
+            <div class="inline-flex rounded-xl bg-slate-100 p-1 border border-slate-200">
+              <button type="button" data-seis-view="both"
+                class="seis-view-btn px-2.5 py-1 rounded-lg text-xs font-bold bg-white text-slate-900 shadow-sm">
+                파면 + 파선
+              </button>
+              <button type="button" data-seis-view="ray"
+                class="seis-view-btn px-2.5 py-1 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900">
+                파선 중심
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 지층별 속력 및 굴절 법칙 계측판 -->
+        <div class="bg-slate-900 text-white rounded-2xl p-5 shadow-sm border border-slate-800">
+          <h3 class="text-sm font-bold text-indigo-300 mb-3 flex items-center justify-between">
+            <span>지층 매질 속력 및 반사·굴절 물리량</span>
+            <span class="text-[11px] font-normal text-slate-400 math-static">$\frac{\sin\theta_1}{\sin\theta_2} = \frac{v_1}{v_2}$</span>
+          </h3>
+          <div class="grid grid-cols-3 gap-2 mb-3">
+            <div class="bg-slate-800/90 rounded-xl p-2.5 border border-slate-700/70">
+              <div class="text-[11px] text-sky-300">해수층</div>
+              <div class="text-xs font-bold mt-0.5 math-static">$v_1 = 1500\text{ m/s}$</div>
+            </div>
+            <div class="bg-slate-800/90 rounded-xl p-2.5 border border-slate-700/70">
+              <div class="text-[11px] text-amber-300">해저 퇴적층</div>
+              <div class="text-xs font-bold mt-0.5 math-static">$v_2 = 2200\text{ m/s}$</div>
+            </div>
+            <div class="bg-slate-800/90 rounded-xl p-2.5 border border-slate-700/70">
+              <div class="text-[11px] text-orange-300">하부 암반층</div>
+              <div class="text-xs font-bold mt-0.5 math-static">$v_3 = 3800\text{ m/s}$</div>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="bg-slate-800/90 rounded-xl p-3 border border-slate-700/70">
+              <div class="text-[11px] text-slate-400 math-static">해저면 반사 왕복 시간 $\Delta t_1$</div>
+              <div id="seis-metric-t1" class="text-base font-bold text-sky-300 mt-1"></div>
+            </div>
+            <div class="bg-slate-800/90 rounded-xl p-3 border border-slate-700/70">
+              <div class="text-[11px] text-slate-400 math-static">자원층 경계 왕복 시간 $\Delta t_2$</div>
+              <div id="seis-metric-t2" class="text-base font-bold text-amber-300 mt-1"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 교과 개념 설명 -->
+        <div class="bg-amber-50/90 rounded-2xl p-4 border border-amber-200/80">
+          <div class="text-xs font-extrabold text-amber-900 mb-1">교과 개념 원리 설명</div>
+          <p class="text-xs text-slate-700 leading-relaxed math-static">
+            인공 지진파를 발생시키면 성질이 다른 지층 경계면에서 일부는 반사되고 일부는 굴절($v_1 &lt; v_2$이므로 $\theta_1 &lt; \theta_2$)하여 더 깊은 지층으로 들어갑니다. 여러 탐지기($R_1 \sim R_6$)에 도달한 반사파의 시간 분포를 분석하면 지하의 지질 구조와 석유·가스 하이드레이트 등의 자원을 찾을 수 있습니다.
+          </p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- 관련 이론 공식 모달 (alert 대체 커스텀 UI) -->
+  <div id="theory-modal" class="fixed inset-0 z-50 hidden bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl border border-slate-200">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+        <h3 class="text-lg font-extrabold text-slate-900">고2 역학과 에너지 · 관련 이론 공식</h3>
+        <button id="btn-close-modal" type="button"
+          class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold flex items-center justify-center">
+          ✕
+        </button>
+      </div>
+      <div class="space-y-3 text-sm text-slate-700 math-static">
+        <div class="p-3.5 rounded-xl bg-blue-50 border border-blue-100">
+          <div class="font-bold text-blue-900 mb-1">1. 파동의 기본 관계식</div>
+          <p>매질이 일정할 때 파동의 속력 $v$는 일정하며, 진동수 $f$와 파장 $\lambda$는 반비례합니다.</p>
+          <div class="text-center font-bold text-blue-800 mt-1">$$v = f\lambda = \frac{\lambda}{T}$$</div>
+        </div>
+        <div class="p-3.5 rounded-xl bg-emerald-50 border border-emerald-100">
+          <div class="font-bold text-emerald-900 mb-1">2. 반사파를 이용한 거리·깊이 측정</div>
+          <p>탄성파가 속력 $v$인 매질을 왕복하는 데 걸린 시간이 $\Delta t$일 때, 반사 경계면까지의 깊이 $d$는 다음과 같습니다.</p>
+          <div class="text-center font-bold text-emerald-800 mt-1">$$d = \frac{1}{2}v\Delta t$$</div>
+        </div>
+        <div class="p-3.5 rounded-xl bg-indigo-50 border border-indigo-100">
+          <div class="font-bold text-indigo-900 mb-1">3. 경계면에서의 반사와 굴절</div>
+          <p>입사각 $\theta_1$과 반사각 $\theta_r$은 항상 같으며($\theta_1 = \theta_r$), 속력이 $v_1$에서 $v_2$인 매질로 진행할 때 굴절각 $\theta_2$는 다음 관계를 만족합니다.</p>
+          <div class="text-center font-bold text-indigo-800 mt-1">$$\frac{\sin\theta_1}{\sin\theta_2} = \frac{v_1}{v_2}$$</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /**
+     * =========================================================================
+     * 1. 전역 KaTeX 렌더링 및 유틸리티 모듈
+     * =========================================================================
+     */
+    const MathRenderer = {
+      renderAll(root = document.body) {
+        if (typeof renderMathInElement === 'function') {
+          renderMathInElement(root, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '$', right: '$', display: false }
+            ],
+            throwOnError: false
+          });
+        }
+      },
+      setHTML(el, htmlString) {
+        if (!el) return;
+        el.innerHTML = htmlString;
+        this.renderAll(el);
+      }
+    };
+
+    // 간단한 효과음 합성기 (Web Audio API, 외부 오디오 URL 미사용)
+    const SoundFX = {
+      enabled: false,
+      ctx: null,
+      toggle() {
+        this.enabled = !this.enabled;
+        if (this.enabled && !this.ctx) {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (AudioCtx) this.ctx = new AudioCtx();
+        }
+        return this.enabled;
+      },
+      ping(freq = 880, duration = 0.06) {
+        if (!this.enabled || !this.ctx) return;
+        try {
+          if (this.ctx.state === 'suspended') this.ctx.resume();
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+          gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + duration);
+        } catch (e) {
+          // 오디오 재생 제한 무시
+        }
+      }
+    };
+
+    // HiDPI 반응형 캔버스 크기 동기화 도우미
+    const canvasResizers = [];
+    function setupResponsiveCanvas(canvas, drawCallback) {
+      const resize = () => {
+        const rect = canvas.parentElement.getBoundingClientRect();
+        // 숨겨진 탭(display: none) 등으로 컨테이너 크기가 0일 때는 그리기 생략
+        if (rect.width < 40 || rect.height < 40) return;
+
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const w = Math.floor(rect.width);
+        const h = Math.floor(rect.height);
+        if (canvas.width !== w * dpr || canvas.height !== h * dpr) {
+          canvas.width = w * dpr;
+          canvas.height = h * dpr;
+        }
+        const ctx = canvas.getContext('2d');
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        if (drawCallback) drawCallback(w, h);
+      };
+      const ro = new ResizeObserver(resize);
+      ro.observe(canvas.parentElement);
+      canvasResizers.push(resize);
+      resize();
+      return resize;
+    }
+
+    // 캔버스용 물리량 표기 헬퍼 (이탤릭 변수 + 정립 단위)
+    function drawMathLabel(ctx, varPart, unitPart, x, y, options = {}) {
+      const {
+        color = '#f8fafc',
+        fontSize = 12,
+        align = 'left',
+        bg = null
+      } = options;
+      ctx.save();
+      ctx.font = `italic 700 ${fontSize}px Georgia, "Times New Roman", serif`;
+      const varW = varPart ? ctx.measureText(varPart).width : 0;
+      ctx.font = `600 ${fontSize}px "Noto Sans KR", sans-serif`;
+      const unitW = unitPart ? ctx.measureText(unitPart).width : 0;
+      const totalW = varW + unitW;
+
+      let drawX = x;
+      if (align === 'center') drawX = x - totalW / 2;
+      else if (align === 'right') drawX = x - totalW;
+
+      if (bg) {
+        ctx.fillStyle = bg;
+        ctx.beginPath();
+        ctx.roundRect(drawX - 5, y - fontSize + 1, totalW + 10, fontSize + 6, 5);
+        ctx.fill();
+      }
+
+      if (varPart) {
+        ctx.fillStyle = color;
+        ctx.font = `italic 700 ${fontSize}px Georgia, "Times New Roman", serif`;
+        ctx.fillText(varPart, drawX, y);
+      }
+      if (unitPart) {
+        ctx.fillStyle = color;
+        ctx.font = `600 ${fontSize}px "Noto Sans KR", sans-serif`;
+        ctx.fillText(unitPart, drawX + varW, y);
+      }
+      ctx.restore();
+    }
+
+    /**
+     * =========================================================================
+     * 2. 전역 앱 상태 관리
+     * =========================================================================
+     */
+    const AppState = {
+      activeTab: 'ultrasound',
+      lastTime: performance.now(),
+
+      // 탭 1: 초음파 영상 진단 장치 상태
+      us: {
+        freqMHz: 6.5,          // 2.0 ~ 13.0 MHz
+        speed: 1540,           // 연부 조직 속력 v = 1540 m/s
+        target: 'fetus',       // 'fetus' | 'organ_normal' | 'organ_stone'
+        probeXNorm: 0.50,      // 0.15 ~ 0.85
+        running: true,
+        pulsePhase: 0,         // 연속 펄스 진행 위상 (0 ~ 1)
+        isDragging: false
+      },
+
+      // 탭 2: 구조물 비파괴 검사 상태
+      ndt: {
+        material: 'steel',     // 'steel' | 'aluminum' | 'concrete'
+        materials: {
+          steel:    { name: '철강 교량 부재', v: 5900 },
+          aluminum: { name: '항공기 알루미늄 합금', v: 6300 },
+          concrete: { name: '콘크리트 구조물', v: 4000 }
+        },
+        thicknessMM: 120.0,    // 구조물 전체 두께 H = 120 mm
+        defectType: 'shallow', // 'none' | 'shallow' | 'deep' | 'mystery'
+        zones: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
+        mysteryZone: 'D',
+        selectedZone: null,
+        mysteryDepthMM: 54.0,
+        mysteryXNorm: 0.35,
+        mysteryWidthNorm: 0.068,
+        mysteryRevealed: false,
+        probeXNorm: 0.48,      // 0.04 ~ 0.96
+        autoScan: false,
+        scanDir: 1,
+        pulsePhase: 0,
+        isDragging: false
+      },
+
+      // 탭 3: 지하나 바닷속 탐사 상태
+      seismic: {
+        geoType: 'anticline',  // 'flat' | 'anticline' | 'hydrate'
+        stepMode: 0,           // 0(자동), 1~4(교과서 단계)
+        viewMode: 'both',      // 'both' | 'ray'
+        phase: 0,
+        running: true,
+        v1: 1500,              // 해수층 속력 (m/s)
+        v2: 2200,              // 해저 퇴적층 속력 (m/s)
+        v3: 3800               // 하부 암반층 속력 (m/s)
+      }
+    };
+
+    /**
+     * =========================================================================
+     * 3. [탭 1] 초음파 영상 진단 장치 물리 계산 및 렌더링
+     * =========================================================================
+     */
+    const UltrasoundSim = {
+      // 정규화 수평 좌표 u (0~1)에서 정상 태아의 굴곡진 해부학적 단면 경계(cm) 계산
+      getFetusBounds(u) {
+        if (u < 0.22 || u > 0.78) {
+          return { exists: false, topCM: 12.5, bottomCM: 14.0, partName: '양수 · 자궁 내벽' };
+        }
+
+        // 두부 영역 (u: 0.22 ~ 0.43) - 이마·코·턱 굴곡 반영
+        if (u <= 0.43) {
+          const t = (u - 0.22) / 0.21;
+          const dome = Math.sqrt(Math.max(0.02, 1 - Math.pow((t - 0.45) / 0.55, 2)));
+          const noseBump = Math.exp(-Math.pow((t - 0.36) / 0.08, 2)) * 0.45;
+          const chinBump = Math.exp(-Math.pow((t - 0.68) / 0.09, 2)) * 0.32;
+          const topCM = 6.2 - dome * 2.1;
+          const bottomCM = 6.8 + dome * 2.3 + noseBump + chinBump;
+          return { exists: true, topCM, bottomCM, partName: '태아 두부(머리) 경계' };
+        }
+
+        // 목 굴곡 영역 (u: 0.43 ~ 0.49) - 오목한 목선
+        if (u <= 0.49) {
+          const t = (u - 0.43) / 0.06;
+          const dip = Math.sin(t * Math.PI) * 0.45;
+          const topCM = 5.4 + dip * 0.6;
+          const bottomCM = 8.1 - dip * 0.8;
+          return { exists: true, topCM, bottomCM, partName: '태아 경부(목) 윤곽' };
+        }
+
+        // 몸통 및 웅크린 팔·다리 영역 (u: 0.49 ~ 0.78)
+        const t = (u - 0.49) / 0.29;
+        const arch = Math.sin(t * Math.PI);
+        const limbWave = Math.sin(t * Math.PI * 2.4) * 0.35;
+        const topCM = 5.2 - arch * 1.45;
+        const bottomCM = 7.9 + arch * 2.5 + limbWave;
+        return { exists: true, topCM, bottomCM, partName: '태아 체간(등·복부) 경계' };
+      },
+
+      // 현재 검사 대상과 수평 위치 u에서의 주요 반사 깊이 및 상태 계산
+      getBoundaryInfo(u) {
+        const { target } = AppState.us;
+        if (target === 'fetus') {
+          const fb = this.getFetusBounds(u);
+          return {
+            primaryDepthCM: fb.topCM,
+            secondaryDepthCM: fb.bottomCM,
+            hasStone: false,
+            stoneDepthCM: 0,
+            partName: fb.partName
+          };
+        }
+
+        // 복부 장기(간/담낭) 단면 모델
+        const organExists = u >= 0.24 && u <= 0.76;
+        const arch = organExists ? Math.sin(((u - 0.24) / 0.52) * Math.PI) : 0;
+        const primaryDepthCM = organExists ? 5.6 - arch * 1.4 : 13.0;
+        const secondaryDepthCM = organExists ? 8.2 + arch * 2.4 : 14.2;
+
+        // 담석 이상 유무 모드일 때 중앙 부근(u: 0.46 ~ 0.54)에 고반사 결석 배치
+        const hasStone = target === 'organ_stone' && Math.abs(u - 0.50) <= 0.045;
+        const stoneDepthCM = 6.8;
+
+        return {
+          primaryDepthCM: hasStone ? stoneDepthCM : primaryDepthCM,
+          secondaryDepthCM,
+          hasStone,
+          stoneDepthCM,
+          partName: hasStone
+            ? '담석(결석) 고반사 경계'
+            : (organExists ? '복부 장기(간·담낭) 전벽' : '복부 심부 후벽')
+        };
+      },
+
+      computeMetrics() {
+        const { freqMHz, speed, probeXNorm } = AppState.us;
+        const freqHz = freqMHz * 1e6;
+        const lambdaMM = (speed / freqHz) * 1000;
+        const maxPenCM = Math.max(5.5, Math.min(22.0, 74.0 / freqMHz));
+
+        const info = this.getBoundaryInfo(probeXNorm);
+        const depthCM = info.primaryDepthCM;
+        const dtUs = ((2 * (depthCM / 100)) / speed) * 1e6;
+
+        return {
+          freqMHz,
+          speed,
+          lambdaMM,
+          maxPenCM,
+          depthCM,
+          dtUs,
+          info
+        };
+      },
+
+      updateUI() {
+        const m = this.computeMetrics();
+        const { probeXNorm } = AppState.us;
+
+        MathRenderer.setHTML(document.getElementById('us-freq-val'), `$f = ${m.freqMHz.toFixed(1)}\\text{ MHz}$`);
+        MathRenderer.setHTML(document.getElementById('us-pos-val'), `$x = ${Math.round(probeXNorm * 100)}\\text{ \\%}$ (${m.info.partName})`);
+        MathRenderer.setHTML(document.getElementById('us-metric-lambda'), `$\\lambda = ${m.lambdaMM.toFixed(3)}\\text{ mm}$`);
+        MathRenderer.setHTML(document.getElementById('us-metric-pen'), `$d_{\\max} \\approx ${m.maxPenCM.toFixed(1)}\\text{ cm}$`);
+        MathRenderer.setHTML(document.getElementById('us-metric-dt'), `$\\Delta t = ${m.dtUs.toFixed(1)}\\ \\mu\\text{s}$`);
+        MathRenderer.setHTML(document.getElementById('us-metric-depth'), `$d = ${m.depthCM.toFixed(2)}\\text{ cm}$`);
+
+        const qBadge = document.getElementById('us-quality-badge');
+        if (m.freqMHz >= 9.0) {
+          qBadge.textContent = '고해상도 · 얕은 투과 깊이';
+          qBadge.className = 'px-2.5 py-1 rounded-lg text-xs font-bold bg-cyan-50 text-cyan-800 border border-cyan-200';
+        } else if (m.freqMHz <= 4.5) {
+          qBadge.textContent = '심부 투과 유리 · 낮은 해상도';
+          qBadge.className = 'px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200';
+        } else {
+          qBadge.textContent = '균형 잡힌 해상도 및 투과 깊이';
+          qBadge.className = 'px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200';
+        }
+
+        const depthMM = (m.depthCM * 10).toFixed(1);
+        const quizHTML = `
+          <p class="mb-1.5">
+            <strong>문제:</strong> 연부 조직 내 초음파의 속력이 $v = ${m.speed}\\text{ m/s}$이고, 반사파가 되돌아오는 데 걸린 왕복 시간이 $\\Delta t = ${m.dtUs.toFixed(1)}\\ \\mu\\text{s}$일 때, 반사 경계면까지의 깊이 $d$는 얼마인가요?
+          </p>
+          <p class="text-blue-800 font-semibold">
+            <strong>풀이:</strong> $d = \\frac{1}{2}v\\Delta t = \\frac{1}{2} \\times ${m.speed}\\text{ m/s} \\times (${m.dtUs.toFixed(1)} \\times 10^{-6}\\text{ s}) \\approx ${m.depthCM.toFixed(2)}\\text{ cm}\\ (= ${depthMM}\\text{ mm})$
+          </p>
+        `;
+        MathRenderer.setHTML(document.getElementById('us-quiz-content'), quizHTML);
+      },
+
+      drawAnatomyCanvas(w, h) {
+        if (w < 80 || h < 80) return;
+        const canvas = document.getElementById('canvas-us-anatomy');
+        const ctx = canvas.getContext('2d');
+        const { target, probeXNorm, pulsePhase } = AppState.us;
+        const m = this.computeMetrics();
+
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, 0, w, h);
+
+        const skinY = 44;
+        const maxDisplayCM = 16.0;
+        const cmToY = (cm) => skinY + (cm / maxDisplayCM) * (h - skinY - 12);
+
+        const bodyGrad = ctx.createLinearGradient(0, skinY, 0, h);
+        bodyGrad.addColorStop(0, '#334155');
+        bodyGrad.addColorStop(0.15, '#1e293b');
+        bodyGrad.addColorStop(1, '#090d16');
+        ctx.fillStyle = bodyGrad;
+        ctx.fillRect(0, skinY, w, h - skinY);
+
+        ctx.fillStyle = '#f8fafc';
+        ctx.fillRect(0, skinY - 3, w, 4);
+
+        for (let cm = 3; cm <= 15; cm += 3) {
+          const y = cmToY(cm);
+          ctx.strokeStyle = 'rgba(148, 163, 184, 0.14)';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(42, y);
+          ctx.lineTo(w - 12, y);
+          ctx.stroke();
+          drawMathLabel(ctx, '', `${cm} cm`, 6, y + 4, { color: '#94a3b8', fontSize: 10 });
+        }
+
+        if (target === 'fetus') {
+          ctx.fillStyle = 'rgba(251, 207, 232, 0.22)';
+          ctx.strokeStyle = '#f472b6';
+          ctx.lineWidth = 2.2;
+          ctx.beginPath();
+          const steps = 64;
+          for (let i = 0; i <= steps; i++) {
+            const u = 0.22 + (i / steps) * 0.56;
+            const fb = this.getFetusBounds(u);
+            const x = u * w;
+            const y = cmToY(fb.topCM);
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          }
+          for (let i = steps; i >= 0; i--) {
+            const u = 0.22 + (i / steps) * 0.56;
+            const fb = this.getFetusBounds(u);
+            const x = u * w;
+            const y = cmToY(fb.bottomCM);
+            ctx.lineTo(x, y);
+          }
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+
+          ctx.strokeStyle = 'rgba(249, 168, 212, 0.65)';
+          ctx.lineWidth = 1.6;
+          ctx.beginPath();
+          ctx.arc(w * 0.325, cmToY(6.7), Math.max(6, w * 0.068), Math.PI * 0.9, Math.PI * 2.05);
+          ctx.stroke();
+
+          ctx.fillStyle = 'rgba(253, 242, 248, 0.75)';
+          for (let s = 0; s < 7; s++) {
+            const su = 0.50 + s * 0.038;
+            const fb = this.getFetusBounds(su);
+            ctx.beginPath();
+            ctx.arc(su * w, cmToY(fb.topCM + 0.65), 2.3, 0, Math.PI * 2);
+            ctx.fill();
+          }
+
+          ctx.fillStyle = '#fbcfe8';
+          ctx.font = '700 11px "Noto Sans KR", sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText('태아 단면 (두부 · 목 · 체간)', w * 0.52, cmToY(6.8));
+          ctx.textAlign = 'left';
+        } else {
+          ctx.fillStyle = 'rgba(251, 146, 60, 0.20)';
+          ctx.strokeStyle = '#fb923c';
+          ctx.lineWidth = 2.2;
+          ctx.beginPath();
+          ctx.ellipse(w * 0.50, cmToY(7.3), Math.max(1, w * 0.26), Math.max(1, (h - skinY) * 0.22), 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+
+          ctx.fillStyle = '#fed7aa';
+          ctx.font = '700 11px "Noto Sans KR", sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText('복부 장기 (간 · 담낭 단면)', w * 0.50, cmToY(5.3));
+          ctx.textAlign = 'left';
+
+          if (target === 'organ_stone') {
+            const stoneX = w * 0.50;
+            const stoneY = cmToY(6.8);
+
+            ctx.fillStyle = 'rgba(2, 6, 23, 0.68)';
+            ctx.beginPath();
+            ctx.moveTo(stoneX - 11, stoneY + 4);
+            ctx.lineTo(stoneX + 11, stoneY + 4);
+            ctx.lineTo(stoneX + 20, h);
+            ctx.lineTo(stoneX - 20, h);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.fillStyle = '#fef08a';
+            ctx.strokeStyle = '#eab308';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(stoneX, stoneY, 8.5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = '#fef08a';
+            ctx.font = '800 11px "Noto Sans KR", sans-serif';
+            ctx.fillText('담석 (강한 반사)', stoneX + 14, stoneY + 4);
+          }
+        }
+
+        if (m.maxPenCM < maxDisplayCM) {
+          const penY = cmToY(m.maxPenCM);
+          ctx.save();
+          ctx.setLineDash([6, 4]);
+          ctx.strokeStyle = 'rgba(250, 204, 21, 0.75)';
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(42, penY);
+          ctx.lineTo(w - 12, penY);
+          ctx.stroke();
+          ctx.restore();
+
+          drawMathLabel(ctx, 'd_max', ` 투과 한계 (${m.maxPenCM.toFixed(1)} cm)`, w - 180, penY - 5, {
+            color: '#fde047',
+            fontSize: 10
+          });
+        }
+
+        const probeX = probeXNorm * w;
+        const targetY = cmToY(m.depthCM);
+
+        const beamGrad = ctx.createLinearGradient(0, skinY, 0, targetY);
+        beamGrad.addColorStop(0, 'rgba(34, 211, 238, 0.25)');
+        beamGrad.addColorStop(1, 'rgba(34, 211, 238, 0.05)');
+        ctx.fillStyle = beamGrad;
+        ctx.beginPath();
+        ctx.moveTo(probeX - 16, skinY);
+        ctx.lineTo(probeX + 16, skinY);
+        ctx.lineTo(probeX + 34, targetY);
+        ctx.lineTo(probeX - 34, targetY);
+        ctx.closePath();
+        ctx.fill();
+
+        const waveSpacing = Math.max(5, Math.min(20, m.lambdaMM * 28));
+        const travel = Math.max(10, targetY - skinY);
+        if (pulsePhase < 0.5) {
+          const p = pulsePhase * 2;
+          const curY = skinY + p * travel;
+          ctx.strokeStyle = '#22d3ee';
+          ctx.lineWidth = 2.2;
+          for (let k = 0; k < 3; k++) {
+            const wy = curY - k * waveSpacing;
+            if (wy >= skinY) {
+              ctx.beginPath();
+              ctx.arc(probeX, skinY, wy - skinY, Math.PI * 0.38, Math.PI * 0.62);
+              ctx.stroke();
+            }
+          }
+        } else {
+          const p = (pulsePhase - 0.5) * 2;
+          const curY = targetY - p * travel;
+          ctx.strokeStyle = '#34d399';
+          ctx.lineWidth = 2.2;
+          for (let k = 0; k < 3; k++) {
+            const wy = curY + k * waveSpacing;
+            if (wy <= targetY && wy >= skinY) {
+              ctx.beginPath();
+              ctx.moveTo(probeX - 18, wy);
+              ctx.lineTo(probeX + 18, wy);
+              ctx.stroke();
+            }
+          }
+        }
+
+        ctx.fillStyle = '#34d399';
+        ctx.beginPath();
+        ctx.arc(probeX, targetY, 4.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#0284c7';
+        ctx.strokeStyle = '#bae6fd';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.roundRect(probeX - 20, skinY - 32, 40, 29, 7);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#f8fafc';
+        ctx.font = '800 10px "Noto Sans KR", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('탐촉자', probeX, skinY - 14);
+        ctx.textAlign = 'left';
+      },
+
+      drawMonitorCanvas(w, h) {
+        if (w < 80 || h < 80) return;
+        const canvas = document.getElementById('canvas-us-monitor');
+        const ctx = canvas.getContext('2d');
+        const { probeXNorm, freqMHz } = AppState.us;
+        const m = this.computeMetrics();
+
+        ctx.fillStyle = '#030712';
+        ctx.fillRect(0, 0, w, h);
+
+        const padL = 44;
+        const padR = 20;
+        const padT = 18;
+        const padB = 18;
+        const plotW = w - padL - padR;
+        const plotH = h - padT - padB;
+        const maxDisplayCM = 16.0;
+        const cmToY = (cm) => padT + (cm / maxDisplayCM) * plotH;
+
+        ctx.strokeStyle = '#1e293b';
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(padL, padT, plotW, plotH);
+
+        for (let cm = 0; cm <= 15; cm += 5) {
+          const y = cmToY(cm);
+          drawMathLabel(ctx, '', `${cm}cm`, 4, y + 4, { color: '#64748b', fontSize: 10 });
+        }
+
+        const sharpness = Math.max(1.4, 5.2 - freqMHz * 0.28);
+
+        const cols = 90;
+        for (let i = 0; i <= cols; i++) {
+          const u = i / cols;
+          const x = padL + u * plotW;
+          const info = this.getBoundaryInfo(u);
+
+          const atten1 = info.primaryDepthCM <= m.maxPenCM
+            ? 1.0
+            : Math.max(0.08, Math.exp(-(info.primaryDepthCM - m.maxPenCM) * 0.45));
+
+          ctx.fillStyle = `rgba(226, 232, 240, ${0.88 * atten1})`;
+          ctx.fillRect(x - 1.5, cmToY(info.primaryDepthCM) - sharpness / 2, 3, sharpness);
+
+          if (info.hasStone) {
+            ctx.fillStyle = 'rgba(248, 250, 252, 0.98)';
+            ctx.fillRect(x - 2, cmToY(info.stoneDepthCM) - sharpness, 4, sharpness * 2);
+          } else if (info.secondaryDepthCM < maxDisplayCM) {
+            const atten2 = info.secondaryDepthCM <= m.maxPenCM
+              ? 0.72
+              : Math.max(0.05, Math.exp(-(info.secondaryDepthCM - m.maxPenCM) * 0.5));
+            ctx.fillStyle = `rgba(148, 163, 184, ${atten2})`;
+            ctx.fillRect(x - 1.5, cmToY(info.secondaryDepthCM) - sharpness / 2, 3, sharpness);
+          }
+        }
+
+        const cursorX = padL + probeXNorm * plotW;
+        ctx.save();
+        ctx.setLineDash([4, 4]);
+        ctx.strokeStyle = '#22d3ee';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(cursorX, padT);
+        ctx.lineTo(cursorX, padT + plotH);
+        ctx.stroke();
+        ctx.restore();
+
+        const targetY = cmToY(m.depthCM);
+        ctx.fillStyle = '#34d399';
+        ctx.beginPath();
+        ctx.arc(cursorX, targetY, 4.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        drawMathLabel(ctx, 'f', ` = ${freqMHz.toFixed(1)} MHz`, padL + 10, padT + 16, {
+          color: '#38bdf8',
+          fontSize: 11,
+          bg: 'rgba(15, 23, 42, 0.75)'
+        });
+        drawMathLabel(ctx, 'd', ` = ${m.depthCM.toFixed(2)} cm`, padL + 10, padT + 36, {
+          color: '#34d399',
+          fontSize: 11,
+          bg: 'rgba(15, 23, 42, 0.75)'
+        });
+      }
+    };
+
+    /**
+     * =========================================================================
+     * 4. [탭 2] 구조물 비파괴 검사 물리 계산 및 렌더링
+     * =========================================================================
+     */
+    const NDTSim = {
+      getCurrentZone() {
+        const idx = Math.min(9, Math.max(0, Math.floor(AppState.ndt.probeXNorm * 10)));
+        return AppState.ndt.zones[idx];
+      },
+
+      getDefectInfo() {
+        const { defectType, mysteryXNorm, mysteryWidthNorm, mysteryDepthMM, mysteryZone } = AppState.ndt;
+        if (defectType === 'none') {
+          return { hasDefect: false, xNorm: 0.5, widthNorm: 0, depthMM: 0, label: '결함 없음' };
+        }
+        if (defectType === 'shallow') {
+          return { hasDefect: true, xNorm: 0.36, widthNorm: 0.11, depthMM: 36.0, label: '얕은 내부 균열' };
+        }
+        if (defectType === 'deep') {
+          return { hasDefect: true, xNorm: 0.65, widthNorm: 0.14, depthMM: 78.0, label: '깊은 대형 기공' };
+        }
+        return {
+          hasDefect: true,
+          xNorm: mysteryXNorm,
+          widthNorm: mysteryWidthNorm,
+          depthMM: mysteryDepthMM,
+          label: `미지의 결함 (${mysteryZone} 구역)`
+        };
+      },
+
+      generateMystery() {
+        const ndt = AppState.ndt;
+        const zoneIdx = Math.floor(Math.random() * ndt.zones.length);
+        ndt.mysteryZone = ndt.zones[zoneIdx];
+        ndt.mysteryXNorm = (zoneIdx + 0.5) / ndt.zones.length;
+        ndt.mysteryDepthMM = Math.round((24 + Math.random() * 72) * 2) / 2;
+        ndt.mysteryRevealed = false;
+        ndt.selectedZone = null;
+
+        const inputEl = document.getElementById('ndt-guess-input');
+        const fbEl = document.getElementById('ndt-guess-feedback');
+        if (inputEl) inputEl.value = '';
+        if (fbEl) fbEl.innerHTML = '';
+
+        document.querySelectorAll('.ndt-zone-btn').forEach((btn) => {
+          btn.className = 'ndt-zone-btn py-1.5 rounded-lg text-xs font-extrabold border border-purple-300 bg-white text-purple-900 hover:bg-purple-100 transition';
+        });
+      },
+
+      computeMetrics() {
+        const ndt = AppState.ndt;
+        const mat = ndt.materials[ndt.material];
+        const v = mat.v;
+        const H = ndt.thicknessMM;
+        const tbUs = ((2 * (H / 1000)) / v) * 1e6;
+        const defect = this.getDefectInfo();
+        const isOverDefect = defect.hasDefect && Math.abs(ndt.probeXNorm - defect.xNorm) <= defect.widthNorm * 0.55;
+        const tdUs = isOverDefect ? ((2 * (defect.depthMM / 1000)) / v) * 1e6 : null;
+
+        return {
+          v,
+          H,
+          tbUs,
+          defect,
+          isOverDefect,
+          tdUs,
+          currentZone: this.getCurrentZone()
+        };
+      },
+
+      updateUI() {
+        const m = this.computeMetrics();
+        const ndt = AppState.ndt;
+        const isHiddenMystery = ndt.defectType === 'mystery' && !ndt.mysteryRevealed;
+
+        MathRenderer.setHTML(document.getElementById('ndt-mat-speed-label'), `$v = ${m.v}\\text{ m/s}$`);
+        MathRenderer.setHTML(
+          document.getElementById('ndt-pos-val'),
+          `$x = ${Math.round(ndt.probeXNorm * 100)}\\text{ \\%}$ (${m.currentZone} 구역)`
+        );
+        MathRenderer.setHTML(document.getElementById('ndt-metric-tb'), `$\\Delta t_b = ${m.tbUs.toFixed(1)}\\ \\mu\\text{s}$`);
+        MathRenderer.setHTML(document.getElementById('ndt-metric-h'), `$H = ${m.H.toFixed(1)}\\text{ mm}$`);
+
+        if (m.isOverDefect) {
+          MathRenderer.setHTML(document.getElementById('ndt-metric-td'), `$\\Delta t_d = ${m.tdUs.toFixed(1)}\\ \\mu\\text{s}$`);
+          if (isHiddenMystery) {
+            MathRenderer.setHTML(document.getElementById('ndt-metric-d'), `$d = ?\\text{ (직접 계산)}$`);
+          } else {
+            MathRenderer.setHTML(document.getElementById('ndt-metric-d'), `$d = ${m.defect.depthMM.toFixed(1)}\\text{ mm}$`);
+          }
+        } else {
+          MathRenderer.setHTML(document.getElementById('ndt-metric-td'), `감지 안 됨`);
+          MathRenderer.setHTML(document.getElementById('ndt-metric-d'), `-`);
+        }
+
+        const badge = document.getElementById('ndt-status-badge');
+        if (isHiddenMystery) {
+          badge.textContent = `스캔 계측 중 (${m.currentZone} 구역)`;
+          badge.className = 'px-2.5 py-1 rounded-lg text-xs font-bold bg-purple-50 text-purple-800 border border-purple-200';
+        } else if (m.isOverDefect) {
+          badge.textContent = '⚠️ 내부 결함 반사파(Pd) 감지됨!';
+          badge.className = 'px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200';
+        } else {
+          badge.textContent = '정상 구간 (바닥면 반사파 Pb만 수신)';
+          badge.className = 'px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200';
+        }
+      },
+
+      drawBeamCanvas(w, h) {
+        if (w < 80 || h < 80) return;
+        const canvas = document.getElementById('canvas-ndt-beam');
+        const ctx = canvas.getContext('2d');
+        const ndt = AppState.ndt;
+        const m = this.computeMetrics();
+
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, 0, w, h);
+
+        const padL = 44;
+        const padR = 24;
+        const topY = 50;
+        const botY = h - 28;
+        const blockW = w - padL - padR;
+        const blockH = botY - topY;
+        const depthToY = (mm) => topY + (mm / ndt.thicknessMM) * blockH;
+
+        // 재질별 구조물 블록 색상
+        const matGrad = ctx.createLinearGradient(0, topY, 0, botY);
+        if (ndt.material === 'steel') {
+          matGrad.addColorStop(0, '#475569');
+          matGrad.addColorStop(1, '#1e293b');
+        } else if (ndt.material === 'aluminum') {
+          matGrad.addColorStop(0, '#64748b');
+          matGrad.addColorStop(1, '#334155');
+        } else {
+          matGrad.addColorStop(0, '#57534e');
+          matGrad.addColorStop(1, '#292524');
+        }
+        ctx.fillStyle = matGrad;
+        ctx.fillRect(padL, topY, blockW, blockH);
+        ctx.strokeStyle = '#94a3b8';
+        ctx.lineWidth = 1.8;
+        ctx.strokeRect(padL, topY, blockW, blockH);
+
+        // 깊이 눈금 (0 mm ~ 120 mm)
+        for (let mm = 0; mm <= 120; mm += 30) {
+          const y = depthToY(mm);
+          ctx.strokeStyle = 'rgba(226, 232, 240, 0.14)';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(padL, y);
+          ctx.lineTo(padL + blockW, y);
+          ctx.stroke();
+          drawMathLabel(ctx, '', `${mm}`, 8, y + 4, { color: '#94a3b8', fontSize: 10 });
+        }
+
+        // 미지의 결함 찾기 모드일 때 A~J 10개 구역 분할 표시
+        if (ndt.defectType === 'mystery') {
+          const zoneW = blockW / 10;
+          const curIdx = Math.min(9, Math.max(0, Math.floor(ndt.probeXNorm * 10)));
+          for (let i = 0; i < 10; i++) {
+            const zx = padL + i * zoneW;
+            if (i === curIdx) {
+              ctx.fillStyle = 'rgba(168, 85, 247, 0.22)';
+              ctx.fillRect(zx, topY, zoneW, blockH);
+            }
+            if (i > 0) {
+              ctx.save();
+              ctx.setLineDash([4, 4]);
+              ctx.strokeStyle = 'rgba(216, 180, 254, 0.35)';
+              ctx.lineWidth = 1;
+              ctx.beginPath();
+              ctx.moveTo(zx, topY);
+              ctx.lineTo(zx, botY);
+              ctx.stroke();
+              ctx.restore();
+            }
+            ctx.fillStyle = i === curIdx ? '#f3e8ff' : '#cbd5e1';
+            ctx.font = i === curIdx ? '800 12px "Noto Sans KR", sans-serif' : '700 11px "Noto Sans KR", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(ndt.zones[i], zx + zoneW / 2, botY + 17);
+          }
+          ctx.textAlign = 'left';
+        } else {
+          ctx.fillStyle = '#94a3b8';
+          ctx.font = '600 11px "Noto Sans KR", sans-serif';
+          ctx.fillText(`구조물 바닥면 (두께 H = ${ndt.thicknessMM} mm)`, padL + 8, botY + 17);
+        }
+
+        // 내부 결함 시각화 (미지의 결함 모드에서는 정답 공개 시에만 노출)
+        const showDefect = m.defect.hasDefect && (ndt.defectType !== 'mystery' || ndt.mysteryRevealed);
+        if (showDefect) {
+          const dx = padL + m.defect.xNorm * blockW;
+          const dw = Math.max(18, m.defect.widthNorm * blockW);
+          const dy = depthToY(m.defect.depthMM);
+
+          ctx.fillStyle = 'rgba(244, 63, 94, 0.28)';
+          ctx.strokeStyle = '#fb7185';
+          ctx.lineWidth = 2.4;
+          ctx.beginPath();
+          ctx.ellipse(dx, dy, Math.max(1, dw * 0.5), 5.5, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+
+          ctx.fillStyle = '#fecdd3';
+          ctx.font = '800 11px "Noto Sans KR", sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText(`${m.defect.label} (d = ${m.defect.depthMM.toFixed(1)} mm)`, dx, dy - 10);
+          ctx.textAlign = 'left';
+        }
+
+        // 탐촉자 및 탄성파 펄스 경로
+        const probeX = padL + ndt.probeXNorm * blockW;
+        const reflectY = m.isOverDefect ? depthToY(m.defect.depthMM) : botY;
+
+        // 빔 가이드 영역
+        ctx.fillStyle = m.isOverDefect ? 'rgba(251, 113, 133, 0.14)' : 'rgba(56, 189, 248, 0.12)';
+        ctx.fillRect(probeX - 11, topY, 22, reflectY - topY);
+
+        // 왕복 펄스 파동 애니메이션
+        const travel = Math.max(8, reflectY - topY);
+        const phase = ndt.pulsePhase;
+        if (phase < 0.5) {
+          const p = phase * 2;
+          const wy = topY + p * travel;
+          ctx.strokeStyle = '#38bdf8';
+          ctx.lineWidth = 2.5;
+          for (let k = 0; k < 3; k++) {
+            const yk = wy - k * 7;
+            if (yk >= topY) {
+              ctx.beginPath();
+              ctx.moveTo(probeX - 12, yk);
+              ctx.lineTo(probeX + 12, yk);
+              ctx.stroke();
+            }
+          }
+        } else {
+          const p = (phase - 0.5) * 2;
+          const wy = reflectY - p * travel;
+          ctx.strokeStyle = m.isOverDefect ? '#fb7185' : '#34d399';
+          ctx.lineWidth = 2.5;
+          for (let k = 0; k < 3; k++) {
+            const yk = wy + k * 7;
+            if (yk <= reflectY && yk >= topY) {
+              ctx.beginPath();
+              ctx.moveTo(probeX - 12, yk);
+              ctx.lineTo(probeX + 12, yk);
+              ctx.stroke();
+            }
+          }
+        }
+
+        // 탐촉자 본체
+        ctx.fillStyle = '#d97706';
+        ctx.strokeStyle = '#fde68a';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.roundRect(probeX - 18, topY - 34, 36, 31, 6);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '800 10px "Noto Sans KR", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(ndt.defectType === 'mystery' ? `${m.currentZone}구역` : '탐촉자', probeX, topY - 15);
+        ctx.textAlign = 'left';
+      },
+
+      drawScopeCanvas(w, h) {
+        if (w < 80 || h < 80) return;
+        const canvas = document.getElementById('canvas-ndt-scope');
+        const ctx = canvas.getContext('2d');
+        const m = this.computeMetrics();
+
+        ctx.fillStyle = '#020617';
+        ctx.fillRect(0, 0, w, h);
+
+        const padL = 46;
+        const padR = 22;
+        const padT = 22;
+        const padB = 30;
+        const plotW = w - padL - padR;
+        const plotH = h - padT - padB;
+        const baseY = padT + plotH * 0.84;
+
+        // 오실로스코프 격자
+        ctx.strokeStyle = 'rgba(34, 197, 94, 0.16)';
+        ctx.lineWidth = 1;
+        for (let i = 0; i <= 10; i++) {
+          const gx = padL + (i / 10) * plotW;
+          ctx.beginPath();
+          ctx.moveTo(gx, padT);
+          ctx.lineTo(gx, padT + plotH);
+          ctx.stroke();
+        }
+        for (let j = 0; j <= 5; j++) {
+          const gy = padT + (j / 5) * plotH;
+          ctx.beginPath();
+          ctx.moveTo(padL, gy);
+          ctx.lineTo(padL + plotW, gy);
+          ctx.stroke();
+        }
+
+        // 축 라벨
+        drawMathLabel(ctx, 'A', ' (진폭)', 6, padT + 12, { color: '#86efac', fontSize: 10 });
+        drawMathLabel(ctx, 't', ' (시간, μs)', padL + plotW - 64, h - 8, { color: '#86efac', fontSize: 10 });
+
+        // 최대 시간 축 스케일 (70 us)
+        const maxTimeUs = 70.0;
+        const timeToX = (tUs) => padL + Math.min(0.96, tUs / maxTimeUs) * plotW;
+
+        for (let t = 0; t <= 60; t += 15) {
+          const tx = timeToX(t);
+          drawMathLabel(ctx, '', `${t}`, tx - 6, baseY + 15, { color: '#64748b', fontSize: 10 });
+        }
+
+        // 파형 함수: P0 (t=2 us), Pd (t=tdUs), Pb (t=tbUs)
+        const xP0 = timeToX(2.0);
+        const xPb = timeToX(m.tbUs);
+        const xPd = m.isOverDefect ? timeToX(m.tdUs) : -999;
+        const ampPb = m.isOverDefect ? 0.42 : 0.78;
+
+        ctx.strokeStyle = '#4ade80';
+        ctx.lineWidth = 2.2;
+        ctx.beginPath();
+        for (let px = 0; px <= plotW; px++) {
+          const x = padL + px;
+          const p0 = Math.exp(-Math.pow((x - xP0) / 5.5, 2)) * Math.cos((x - xP0) * 0.9) * (plotH * 0.72);
+          const pd = m.isOverDefect
+            ? Math.exp(-Math.pow((x - xPd) / 5.5, 2)) * Math.cos((x - xPd) * 0.9) * (plotH * 0.65)
+            : 0;
+          const pb = Math.exp(-Math.pow((x - xPb) / 6.0, 2)) * Math.cos((x - xPb) * 0.85) * (plotH * ampPb);
+          const y = baseY - Math.max(0, p0) - Math.max(0, pd) - Math.max(0, pb);
+          if (px === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+
+        // 피크 라벨 표시
+        drawMathLabel(ctx, 'P_0', ' (송신)', xP0 - 6, padT + 14, { color: '#38bdf8', fontSize: 11 });
+
+        if (m.isOverDefect) {
+          drawMathLabel(ctx, 'P_d', ` (${m.tdUs.toFixed(1)} μs)`, xPd - 18, padT + 28, {
+            color: '#fb7185',
+            fontSize: 11,
+            bg: 'rgba(15, 23, 42, 0.85)'
+          });
+        }
+
+        drawMathLabel(ctx, 'P_b', ` (${m.tbUs.toFixed(1)} μs)`, xPb - 22, baseY - plotH * ampPb - 8, {
+          color: '#fde047',
+          fontSize: 11,
+          bg: 'rgba(15, 23, 42, 0.85)'
+        });
+      }
+    };
+
+    /**
+     * =========================================================================
+     * 5. [탭 3] 지하나 바닷속 탐사 물리 계산 및 렌더링
+     * =========================================================================
+     */
+    const SeismicSim = {
+      // 정규화 수평 좌표 u (0~1)에서 해저면 및 자원층 경계 깊이 비율 반환
+      getLayerProfile(u) {
+        const { geoType } = AppState.seismic;
+        // 해저면 경계 (전체 높이의 약 0.30 ~ 0.35)
+        const seabed = 0.31 + 0.025 * Math.sin(u * Math.PI * 1.2);
+
+        // 하부 자원/암반 경계면
+        let deep = 0.68;
+        if (geoType === 'anticline') {
+          // 배사 구조 (중앙부가 볼록하게 솟아올라 석유·가스 트랩 형성)
+          deep = 0.71 - 0.17 * Math.exp(-Math.pow((u - 0.54) / 0.21, 2));
+        } else if (geoType === 'hydrate') {
+          // 해저 가스 하이드레이트 매장층 (해저면을 따라 평행하게 발달하는 BSR 경계)
+          deep = seabed + 0.25 + 0.03 * Math.cos(u * Math.PI * 2);
+        }
+        return { seabed, deep };
+      },
+
+      computeMetrics() {
+        const { geoType, v1, v2 } = AppState.seismic;
+        // 대표 탐사 지점(중앙 부근)에서의 수심 d1 및 퇴적층 두께 d2 (m 단위 모형)
+        const d1 = 600;
+        const d2 = geoType === 'anticline' ? 550 : (geoType === 'hydrate' ? 660 : 880);
+        const dt1 = (2 * d1) / v1;
+        const dt2 = dt1 + (2 * d2) / v2;
+        return { dt1, dt2, d1, d2 };
+      },
+
+      updateUI() {
+        const m = this.computeMetrics();
+        MathRenderer.setHTML(document.getElementById('seis-metric-t1'), `$\\Delta t_1 = ${m.dt1.toFixed(2)}\\text{ s}$`);
+        MathRenderer.setHTML(document.getElementById('seis-metric-t2'), `$\\Delta t_2 = ${m.dt2.toFixed(2)}\\text{ s}$`);
+      },
+
+      getEffectiveProgress() {
+        const { stepMode, phase } = AppState.seismic;
+        if (stepMode === 0) return phase;
+        if (stepMode === 1) return 0.16;
+        if (stepMode === 2) return 0.44;
+        if (stepMode === 3) return 0.72;
+        return 0.96;
+      },
+
+      drawCrossCanvas(w, h) {
+        if (w < 80 || h < 80) return;
+        const canvas = document.getElementById('canvas-seis-cross');
+        const ctx = canvas.getContext('2d');
+        const { geoType, viewMode } = AppState.seismic;
+        const p = this.getEffectiveProgress();
+
+        // 하늘 영역
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, 0, w, h);
+
+        const seaTop = 48;
+        const geoH = h - seaTop;
+        const ySeabed = (u) => seaTop + this.getLayerProfile(u).seabed * geoH;
+        const yDeep = (u) => seaTop + this.getLayerProfile(u).deep * geoH;
+
+        // 1층: 해수층 (v1 = 1500 m/s)
+        ctx.fillStyle = '#0369a1';
+        ctx.beginPath();
+        ctx.moveTo(0, seaTop);
+        ctx.lineTo(w, seaTop);
+        for (let i = 40; i >= 0; i--) {
+          const u = i / 40;
+          ctx.lineTo(u * w, ySeabed(u));
+        }
+        ctx.closePath();
+        ctx.fill();
+
+        // 2층: 해저 퇴적층 (v2 = 2200 m/s)
+        ctx.fillStyle = '#b45309';
+        ctx.beginPath();
+        for (let i = 0; i <= 40; i++) {
+          const u = i / 40;
+          const x = u * w;
+          const y = ySeabed(u);
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        for (let i = 40; i >= 0; i--) {
+          const u = i / 40;
+          ctx.lineTo(u * w, yDeep(u));
+        }
+        ctx.closePath();
+        ctx.fill();
+
+        // 3층: 하부 암반 및 자원 매장층 (v3 = 3800 m/s)
+        ctx.fillStyle = '#44403c';
+        ctx.beginPath();
+        for (let i = 0; i <= 40; i++) {
+          const u = i / 40;
+          const x = u * w;
+          const y = yDeep(u);
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.lineTo(w, h);
+        ctx.lineTo(0, h);
+        ctx.closePath();
+        ctx.fill();
+
+        // 자원 매장 구역 하이라이트
+        if (geoType === 'anticline') {
+          ctx.fillStyle = 'rgba(250, 204, 21, 0.35)';
+          ctx.beginPath();
+          ctx.ellipse(w * 0.54, yDeep(0.54) + 12, Math.max(12, w * 0.09), 11, 0, Math.PI, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = '#fef08a';
+          ctx.font = '800 11px "Noto Sans KR", sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText('석유 · 천연가스 매장층', w * 0.54, yDeep(0.54) + 24);
+          ctx.textAlign = 'left';
+        } else if (geoType === 'hydrate') {
+          ctx.strokeStyle = '#38bdf8';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          for (let i = 14; i <= 34; i++) {
+            const u = i / 40;
+            const x = u * w;
+            const y = yDeep(u);
+            if (i === 14) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          }
+          ctx.stroke();
+          ctx.fillStyle = '#bae6fd';
+          ctx.font = '800 11px "Noto Sans KR", sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText('가스 하이드레이트 매장층', w * 0.60, yDeep(0.60) + 18);
+          ctx.textAlign = 'left';
+        }
+
+        // 매질 속력 라벨
+        drawMathLabel(ctx, 'v_1', ' = 1500 m/s (해수층)', 12, seaTop + 26, { color: '#e0f2fe', fontSize: 11 });
+        drawMathLabel(ctx, 'v_2', ' = 2200 m/s (해저 퇴적층)', 12, ySeabed(0.05) + 22, { color: '#fef3c7', fontSize: 11 });
+        drawMathLabel(ctx, 'v_3', ' = 3800 m/s (하부 암반층)', 12, h - 10, { color: '#e7e5e4', fontSize: 11 });
+
+        // 탐사선 및 다중 탐지기(R1 ~ R6)
+        const shipX = w * 0.14;
+        const sourceX = w * 0.17;
+        const sourceY = seaTop + 6;
+
+        // 탐사선 선체
+        ctx.fillStyle = '#f8fafc';
+        ctx.beginPath();
+        ctx.moveTo(shipX - 24, seaTop - 12);
+        ctx.lineTo(shipX + 26, seaTop - 12);
+        ctx.lineTo(shipX + 18, seaTop);
+        ctx.lineTo(shipX - 18, seaTop);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = '#2563eb';
+        ctx.fillRect(shipX - 10, seaTop - 21, 16, 9);
+
+        // 스트리머 케이블 및 탐지기 R1 ~ R6
+        const rxNorms = [0.30, 0.41, 0.52, 0.63, 0.74, 0.85];
+        ctx.strokeStyle = 'rgba(248, 250, 252, 0.6)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(shipX + 20, seaTop - 4);
+        ctx.lineTo(w * 0.87, seaTop + 5);
+        ctx.stroke();
+
+        rxNorms.forEach((ru, idx) => {
+          const rx = ru * w;
+          const ry = seaTop + 5;
+          const active = p >= 0.62 + idx * 0.03;
+          ctx.fillStyle = active ? '#22d3ee' : '#cbd5e1';
+          ctx.beginPath();
+          ctx.arc(rx, ry, active ? 4.5 : 3.2, 0, Math.PI * 2);
+          ctx.fill();
+          drawMathLabel(ctx, `R_${idx + 1}`, '', rx - 7, seaTop - 6, {
+            color: active ? '#67e8f9' : '#94a3b8',
+            fontSize: 10
+          });
+        });
+
+        // 파면(Wavefront) 시각화
+        if (viewMode === 'both') {
+          const maxR = Math.hypot(w * 0.65, geoH * 0.85);
+          const curR = p * maxR;
+          ctx.save();
+          ctx.strokeStyle = 'rgba(125, 211, 252, 0.35)';
+          ctx.lineWidth = 1.8;
+          for (let k = 0; k < 3; k++) {
+            const rk = curR - k * 18;
+            if (rk > 4) {
+              ctx.beginPath();
+              ctx.arc(sourceX, sourceY, rk, 0.08, Math.PI * 0.48);
+              ctx.stroke();
+            }
+          }
+          ctx.restore();
+        }
+
+        // 반사·굴절 파선(Ray) 경로 애니메이션 (대표 탐지기 R2, R4 경로)
+        const targetReceivers = [0.41, 0.63, 0.85];
+        targetReceivers.forEach((ru) => {
+          const rx = ru * w;
+          const ry = seaTop + 5;
+          const midU1 = (0.17 + ru) * 0.5;
+          const hit1X = midU1 * w;
+          const hit1Y = ySeabed(midU1);
+
+          // 1) 해저면 반사 경로 (하늘색 점선)
+          ctx.save();
+          ctx.strokeStyle = 'rgba(125, 211, 252, 0.8)';
+          ctx.lineWidth = 1.6;
+          if (p > 0.15) {
+            const seg1 = Math.min(1, p / 0.35);
+            ctx.beginPath();
+            ctx.moveTo(sourceX, sourceY);
+            ctx.lineTo(sourceX + (hit1X - sourceX) * seg1, sourceY + (hit1Y - sourceY) * seg1);
+            ctx.stroke();
+          }
+          if (p > 0.35) {
+            const seg2 = Math.min(1, (p - 0.35) / 0.35);
+            ctx.beginPath();
+            ctx.moveTo(hit1X, hit1Y);
+            ctx.lineTo(hit1X + (rx - hit1X) * seg2, hit1Y + (ry - hit1Y) * seg2);
+            ctx.stroke();
+          }
+          ctx.restore();
+
+          // 2) 해저면에서 굴절(v1 < v2 이므로 법선에서 멀어지게 꺾임) 후 하부 자원층 반사 경로 (노란색 실선)
+          const refractU = 0.17 + (ru - 0.17) * 0.32;
+          const refX = refractU * w;
+          const refY = ySeabed(refractU);
+          const deepU = (refractU + ru) * 0.52;
+          const deepX = deepU * w;
+          const deepY = yDeep(deepU);
+
+          ctx.save();
+          ctx.strokeStyle = '#fde047';
+          ctx.lineWidth = 1.9;
+          if (p > 0.1) {
+            const s1 = Math.min(1, p / 0.30);
+            ctx.beginPath();
+            ctx.moveTo(sourceX, sourceY);
+            ctx.lineTo(sourceX + (refX - sourceX) * s1, sourceY + (refY - sourceY) * s1);
+            ctx.stroke();
+          }
+          if (p > 0.30) {
+            const s2 = Math.min(1, (p - 0.30) / 0.25);
+            ctx.beginPath();
+            ctx.moveTo(refX, refY);
+            ctx.lineTo(refX + (deepX - refX) * s2, refY + (deepY - refY) * s2);
+            ctx.stroke();
+          }
+          if (p > 0.55) {
+            const s3 = Math.min(1, (p - 0.55) / 0.35);
+            ctx.beginPath();
+            ctx.moveTo(deepX, deepY);
+            ctx.lineTo(deepX + (rx - deepX) * s3, deepY + (ry - deepY) * s3);
+            ctx.stroke();
+          }
+          ctx.restore();
+        });
+
+        // 상단 단계 안내 배지
+        const stepLabels = [
+          '전체 과정 자동 진행 중 (❶ 발생 → ❷ 반사·굴절 → ❸ 감지 → ❹ 구조도 복원)',
+          '❶ 인공 지진파 발생: 탐사선에서 해저를 향해 강한 탄성파를 발생시킵니다.',
+          '❷ 반사 및 굴절: 지층 경계면에서 반사(θi = θr)와 굴절(v1 < v2 ⇒ θ1 < θ2)이 일어납니다.',
+          '❸ 반사파 감지: 해수면 부근에 배열된 여러 탐지기(R1 ~ R6)가 반사파를 수신합니다.',
+          '❹ 지질 구조도 완성: 탐지기별 반사파 도달 시간 차이를 분석해 지하 구조를 복원합니다.'
+        ];
+        const curStep = AppState.seismic.stepMode;
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.82)';
+        ctx.beginPath();
+        ctx.roundRect(10, 8, w - 20, 24, 6);
+        ctx.fill();
+        ctx.fillStyle = '#e0e7ff';
+        ctx.font = '700 11px "Noto Sans KR", sans-serif';
+        ctx.fillText(stepLabels[curStep], 18, 24);
+      },
+
+      drawRecordCanvas(w, h) {
+        if (w < 80 || h < 80) return;
+        const canvas = document.getElementById('canvas-seis-record');
+        const ctx = canvas.getContext('2d');
+        const p = this.getEffectiveProgress();
+
+        ctx.fillStyle = '#020617';
+        ctx.fillRect(0, 0, w, h);
+
+        const splitX = Math.floor(w * 0.55);
+
+        // 좌측: 다중 탐지기(R1 ~ R6) 수신 기록계
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '700 11px "Noto Sans KR", sans-serif';
+        ctx.fillText('다중 탐지기 수신 파형 기록 (도달 시간 t)', 12, 18);
+
+        const rxNorms = [0.30, 0.41, 0.52, 0.63, 0.74, 0.85];
+        const leftPad = 34;
+        const rightPad = splitX - 16;
+        const topY = 36;
+        const botY = h - 18;
+        const traceH = botY - topY;
+
+        drawMathLabel(ctx, 't', ' (s)', 4, topY + 10, { color: '#64748b', fontSize: 10 });
+
+        rxNorms.forEach((ru, idx) => {
+          const cx = leftPad + (idx / 5) * (rightPad - leftPad);
+          const prof = this.getLayerProfile(ru);
+          const t1Norm = prof.seabed * 0.85 + idx * 0.025;
+          const t2Norm = prof.deep * 0.95 + idx * 0.02;
+
+          drawMathLabel(ctx, `R_${idx + 1}`, '', cx - 8, topY - 4, { color: '#38bdf8', fontSize: 10 });
+
+          ctx.strokeStyle = '#334155';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(cx, topY);
+          ctx.lineTo(cx, botY);
+          ctx.stroke();
+
+          // 반사파 도착 이후부터 파형 트레이스 표시
+          if (p >= 0.58 + idx * 0.03) {
+            ctx.strokeStyle = '#38bdf8';
+            ctx.lineWidth = 1.6;
+            ctx.beginPath();
+            for (let py = 0; py <= traceH; py++) {
+              const yn = py / traceH;
+              const w1 = Math.exp(-Math.pow((yn - t1Norm) / 0.035, 2)) * Math.sin((yn - t1Norm) * 90) * 11;
+              const w2 = Math.exp(-Math.pow((yn - t2Norm) / 0.04, 2)) * Math.sin((yn - t2Norm) * 85) * 13;
+              const x = cx + w1 + w2;
+              if (py === 0) ctx.moveTo(x, topY + py);
+              else ctx.lineTo(x, topY + py);
+            }
+            ctx.stroke();
+          }
+        });
+
+        // 구분선
+        ctx.strokeStyle = '#1e293b';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(splitX, 10);
+        ctx.lineTo(splitX, h - 10);
+        ctx.stroke();
+
+        // 우측: 복원된 지하 지질 구조도
+        const rLeft = splitX + 14;
+        const rW = w - rLeft - 14;
+        ctx.fillStyle = '#e0e7ff';
+        ctx.font = '700 11px "Noto Sans KR", sans-serif';
+        ctx.fillText('복원된 지하 지질 구조도', rLeft, 18);
+
+        ctx.strokeStyle = '#334155';
+        ctx.strokeRect(rLeft, topY, rW, traceH);
+
+        const revealRatio = p >= 0.65 ? Math.min(1, (p - 0.65) / 0.25) : 0;
+        if (revealRatio > 0) {
+          const steps = Math.max(2, Math.floor(32 * revealRatio));
+
+          // 1차 경계면(해저면) 복원선
+          ctx.strokeStyle = '#38bdf8';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          for (let i = 0; i <= steps; i++) {
+            const u = 0.25 + (i / 32) * 0.65;
+            const prof = this.getLayerProfile(u);
+            const x = rLeft + ((u - 0.25) / 0.65) * rW;
+            const y = topY + prof.seabed * traceH;
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          }
+          ctx.stroke();
+
+          // 2차 경계면(하부 지층·자원층) 복원선
+          ctx.strokeStyle = '#fbbf24';
+          ctx.lineWidth = 2.4;
+          ctx.beginPath();
+          for (let i = 0; i <= steps; i++) {
+            const u = 0.25 + (i / 32) * 0.65;
+            const prof = this.getLayerProfile(u);
+            const x = rLeft + ((u - 0.25) / 0.65) * rW;
+            const y = topY + prof.deep * traceH;
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          }
+          ctx.stroke();
+
+          ctx.fillStyle = '#94a3b8';
+          ctx.font = '600 10px "Noto Sans KR", sans-serif';
+          ctx.fillText('해저 경계면', rLeft + 6, topY + this.getLayerProfile(0.3).seabed * traceH - 5);
+          ctx.fillStyle = '#fde047';
+          ctx.fillText('하부 지층 경계면', rLeft + 6, topY + this.getLayerProfile(0.3).deep * traceH + 13);
+        } else {
+          ctx.fillStyle = '#64748b';
+          ctx.font = '600 11px "Noto Sans KR", sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText('반사파 신호 수신 대기 중...', rLeft + rW / 2, topY + traceH / 2);
+          ctx.textAlign = 'left';
+        }
+      }
+    };
+
+    /**
+     * =========================================================================
+     * 6. 메인 애니메이션 루프 및 이벤트 바인딩
+     * =========================================================================
+     */
+    function renderActiveTabCanvases() {
+      const tab = AppState.activeTab;
+      if (tab === 'ultrasound') {
+        const c1 = document.getElementById('canvas-us-anatomy');
+        const c2 = document.getElementById('canvas-us-monitor');
+        if (c1 && c1.parentElement) {
+          const r1 = c1.parentElement.getBoundingClientRect();
+          UltrasoundSim.drawAnatomyCanvas(Math.floor(r1.width), Math.floor(r1.height));
+        }
+        if (c2 && c2.parentElement) {
+          const r2 = c2.parentElement.getBoundingClientRect();
+          UltrasoundSim.drawMonitorCanvas(Math.floor(r2.width), Math.floor(r2.height));
+        }
+      } else if (tab === 'ndt') {
+        const c1 = document.getElementById('canvas-ndt-beam');
+        const c2 = document.getElementById('canvas-ndt-scope');
+        if (c1 && c1.parentElement) {
+          const r1 = c1.parentElement.getBoundingClientRect();
+          NDTSim.drawBeamCanvas(Math.floor(r1.width), Math.floor(r1.height));
+        }
+        if (c2 && c2.parentElement) {
+          const r2 = c2.parentElement.getBoundingClientRect();
+          NDTSim.drawScopeCanvas(Math.floor(r2.width), Math.floor(r2.height));
+        }
+      } else if (tab === 'seismic') {
+        const c1 = document.getElementById('canvas-seis-cross');
+        const c2 = document.getElementById('canvas-seis-record');
+        if (c1 && c1.parentElement) {
+          const r1 = c1.parentElement.getBoundingClientRect();
+          SeismicSim.drawCrossCanvas(Math.floor(r1.width), Math.floor(r1.height));
+        }
+        if (c2 && c2.parentElement) {
+          const r2 = c2.parentElement.getBoundingClientRect();
+          SeismicSim.drawRecordCanvas(Math.floor(r2.width), Math.floor(r2.height));
+        }
+      }
+    }
+
+    function animateLoop(now) {
+      const dt = Math.min(0.05, (now - AppState.lastTime) / 1000);
+      AppState.lastTime = now;
+
+      // 탭 1 위상 진행
+      if (AppState.activeTab === 'ultrasound' && AppState.us.running) {
+        const prev = AppState.us.pulsePhase;
+        AppState.us.pulsePhase = (AppState.us.pulsePhase + dt * 0.75) % 1.0;
+        if (prev > 0.9 && AppState.us.pulsePhase < 0.1) SoundFX.ping(980, 0.04);
+      }
+
+      // 탭 2 위상 및 자동 스캔 진행
+      if (AppState.activeTab === 'ndt') {
+        const prev = AppState.ndt.pulsePhase;
+        AppState.ndt.pulsePhase = (AppState.ndt.pulsePhase + dt * 0.85) % 1.0;
+        if (prev > 0.9 && AppState.ndt.pulsePhase < 0.1) SoundFX.ping(760, 0.04);
+
+        if (AppState.ndt.autoScan && !AppState.ndt.isDragging) {
+          AppState.ndt.probeXNorm += AppState.ndt.scanDir * dt * 0.16;
+          if (AppState.ndt.probeXNorm >= 0.95) {
+            AppState.ndt.probeXNorm = 0.95;
+            AppState.ndt.scanDir = -1;
+          } else if (AppState.ndt.probeXNorm <= 0.05) {
+            AppState.ndt.probeXNorm = 0.05;
+            AppState.ndt.scanDir = 1;
+          }
+          const slider = document.getElementById('ndt-pos-slider');
+          if (slider) slider.value = Math.round(AppState.ndt.probeXNorm * 100);
+          NDTSim.updateUI();
+        }
+      }
+
+      // 탭 3 위상 진행
+      if (AppState.activeTab === 'seismic' && AppState.seismic.running && AppState.seismic.stepMode === 0) {
+        const prev = AppState.seismic.phase;
+        AppState.seismic.phase = (AppState.seismic.phase + dt * 0.24) % 1.0;
+        if (prev > 0.95 && AppState.seismic.phase < 0.05) SoundFX.ping(220, 0.09);
+      }
+
+      renderActiveTabCanvases();
+      requestAnimationFrame(animateLoop);
+    }
+
+    function bindCanvasHorizontalDrag(canvas, minNorm, maxNorm, onMove) {
+      let dragging = false;
+      const updateFromClientX = (clientX) => {
+        const rect = canvas.getBoundingClientRect();
+        if (rect.width <= 0) return;
+        const norm = Math.min(maxNorm, Math.max(minNorm, (clientX - rect.left) / rect.width));
+        onMove(norm);
+      };
+
+      canvas.addEventListener('mousedown', (e) => {
+        dragging = true;
+        updateFromClientX(e.clientX);
+      });
+      window.addEventListener('mousemove', (e) => {
+        if (dragging) updateFromClientX(e.clientX);
+      });
+      window.addEventListener('mouseup', () => {
+        dragging = false;
+      });
+
+      canvas.addEventListener('touchstart', (e) => {
+        if (e.touches.length > 0) {
+          dragging = true;
+          updateFromClientX(e.touches[0].clientX);
+        }
+      }, { passive: true });
+      canvas.addEventListener('touchmove', (e) => {
+        if (dragging && e.touches.length > 0) {
+          updateFromClientX(e.touches[0].clientX);
+        }
+      }, { passive: true });
+      canvas.addEventListener('touchend', () => {
+        dragging = false;
+      });
+    }
+
+    function initInteractions() {
+      // 상단 탭 전환
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const targetTab = btn.getAttribute('data-tab');
+          AppState.activeTab = targetTab;
+
+          document.querySelectorAll('.tab-btn').forEach((b) => {
+            const active = b === btn;
+            b.className = active
+              ? 'tab-btn active flex-1 min-w-[175px] px-4 py-2.5 rounded-xl text-sm font-bold transition flex items-center justify-center gap-2 bg-blue-600 text-white shadow'
+              : 'tab-btn flex-1 min-w-[175px] px-4 py-2.5 rounded-xl text-sm font-bold transition flex items-center justify-center gap-2 bg-slate-800/80 text-slate-300 hover:bg-slate-800 hover:text-white';
+          });
+
+          document.querySelectorAll('.tab-panel').forEach((panel) => {
+            panel.classList.toggle('hidden', panel.id !== `panel-${targetTab}`);
+          });
+
+          canvasResizers.forEach((fn) => fn());
+          renderActiveTabCanvases();
+        });
+      });
+
+      // 효과음 토글
+      document.getElementById('btn-sound-toggle').addEventListener('click', () => {
+        const on = SoundFX.toggle();
+        document.getElementById('sound-icon').textContent = on ? '🔊' : '🔇';
+        document.getElementById('sound-label').textContent = on ? '펄스 효과음 켜짐' : '펄스 효과음 꺼짐';
+        if (on) SoundFX.ping(880, 0.08);
+      });
+
+      // 관련 이론 공식 모달
+      const modal = document.getElementById('theory-modal');
+      document.getElementById('btn-theory-modal').addEventListener('click', () => {
+        modal.classList.remove('hidden');
+        MathRenderer.renderAll(modal);
+      });
+      document.getElementById('btn-close-modal').addEventListener('click', () => {
+        modal.classList.add('hidden');
+      });
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.classList.add('hidden');
+      });
+
+      // --- [탭 1] 이벤트 ---
+      const usFreqSlider = document.getElementById('us-freq-slider');
+      const usPosSlider = document.getElementById('us-pos-slider');
+
+      const syncUsPresetHighlight = (freq) => {
+        document.querySelectorAll('.us-preset-btn').forEach((btn) => {
+          const bf = parseFloat(btn.getAttribute('data-us-freq'));
+          const active = Math.abs(bf - freq) < 0.01;
+          btn.className = active
+            ? 'us-preset-btn p-2.5 rounded-xl border-2 border-blue-500 bg-blue-50 text-left transition'
+            : 'us-preset-btn p-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-blue-50 hover:border-blue-300 text-left transition';
+        });
+      };
+
+      usFreqSlider.addEventListener('input', () => {
+        AppState.us.freqMHz = parseFloat(usFreqSlider.value);
+        syncUsPresetHighlight(AppState.us.freqMHz);
+        UltrasoundSim.updateUI();
+      });
+
+      document.querySelectorAll('.us-preset-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const f = parseFloat(btn.getAttribute('data-us-freq'));
+          AppState.us.freqMHz = f;
+          usFreqSlider.value = f;
+          syncUsPresetHighlight(f);
+          UltrasoundSim.updateUI();
+        });
+      });
+
+      document.querySelectorAll('.us-target-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          AppState.us.target = btn.getAttribute('data-us-target');
+          document.querySelectorAll('.us-target-btn').forEach((b) => {
+            const active = b === btn;
+            b.className = active
+              ? 'us-target-btn py-2 px-2.5 rounded-xl text-xs font-bold border-2 border-cyan-600 bg-cyan-50 text-cyan-800 transition'
+              : 'us-target-btn py-2 px-2.5 rounded-xl text-xs font-bold border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 transition';
+          });
+          UltrasoundSim.updateUI();
+        });
+      });
+
+      usPosSlider.addEventListener('input', () => {
+        AppState.us.probeXNorm = parseInt(usPosSlider.value, 10) / 100;
+        UltrasoundSim.updateUI();
+      });
+
+      bindCanvasHorizontalDrag(document.getElementById('canvas-us-anatomy'), 0.15, 0.85, (norm) => {
+        AppState.us.probeXNorm = norm;
+        usPosSlider.value = Math.round(norm * 100);
+        UltrasoundSim.updateUI();
+      });
+
+      document.getElementById('us-btn-pulse').addEventListener('click', () => {
+        AppState.us.pulsePhase = 0;
+        SoundFX.ping(1050, 0.05);
+      });
+      document.getElementById('us-btn-toggle').addEventListener('click', (e) => {
+        AppState.us.running = !AppState.us.running;
+        e.target.textContent = AppState.us.running ? '일시정지' : '재생 재개';
+      });
+
+      // --- [탭 2] 이벤트 ---
+      const ndtPosSlider = document.getElementById('ndt-pos-slider');
+
+      document.querySelectorAll('.ndt-mat-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          AppState.ndt.material = btn.getAttribute('data-ndt-mat');
+          document.querySelectorAll('.ndt-mat-btn').forEach((b) => {
+            const active = b === btn;
+            b.className = active
+              ? 'ndt-mat-btn p-2.5 rounded-xl border-2 border-blue-500 bg-blue-50 text-left transition'
+              : 'ndt-mat-btn p-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-blue-50 text-left transition';
+          });
+          NDTSim.updateUI();
+        });
+      });
+
+      document.querySelectorAll('.ndt-defect-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const type = btn.getAttribute('data-ndt-defect');
+          AppState.ndt.defectType = type;
+
+          document.querySelectorAll('.ndt-defect-btn').forEach((b) => {
+            const active = b === btn;
+            const isPurple = b.getAttribute('data-ndt-defect') === 'mystery';
+            if (active) {
+              b.className = isPurple
+                ? 'ndt-defect-btn py-2 px-3 rounded-xl text-xs font-bold border-2 border-purple-600 bg-purple-100 text-purple-950 text-left transition'
+                : 'ndt-defect-btn py-2 px-3 rounded-xl text-xs font-bold border-2 border-amber-500 bg-amber-50 text-amber-900 text-left transition';
+            } else {
+              b.className = isPurple
+                ? 'ndt-defect-btn py-2 px-3 rounded-xl text-xs font-bold border border-purple-200 bg-purple-50 text-purple-900 hover:bg-purple-100 text-left transition'
+                : 'ndt-defect-btn py-2 px-3 rounded-xl text-xs font-bold border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 text-left transition';
+            }
+          });
+
+          const mysteryBox = document.getElementById('ndt-mystery-box');
+          if (type === 'mystery') {
+            mysteryBox.classList.remove('hidden');
+            NDTSim.generateMystery();
+          } else {
+            mysteryBox.classList.add('hidden');
+          }
+          NDTSim.updateUI();
+        });
+      });
+
+      ndtPosSlider.addEventListener('input', () => {
+        AppState.ndt.probeXNorm = parseInt(ndtPosSlider.value, 10) / 100;
+        NDTSim.updateUI();
+      });
+
+      bindCanvasHorizontalDrag(document.getElementById('canvas-ndt-beam'), 0.04, 0.96, (norm) => {
+        AppState.ndt.probeXNorm = norm;
+        ndtPosSlider.value = Math.round(norm * 100);
+        NDTSim.updateUI();
+      });
+
+      document.getElementById('ndt-btn-autoscan').addEventListener('click', (e) => {
+        AppState.ndt.autoScan = !AppState.ndt.autoScan;
+        e.target.textContent = AppState.ndt.autoScan ? '자동 스캔 정지' : '자동 스캔 시작';
+      });
+
+      document.getElementById('ndt-btn-pulse').addEventListener('click', () => {
+        AppState.ndt.pulsePhase = 0;
+        SoundFX.ping(780, 0.05);
+      });
+
+      // 미지의 결함 찾기 퀴즈 제어
+      document.getElementById('ndt-new-mystery-btn').addEventListener('click', () => {
+        NDTSim.generateMystery();
+        NDTSim.updateUI();
+      });
+
+      document.querySelectorAll('.ndt-zone-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const z = btn.getAttribute('data-ndt-zone');
+          AppState.ndt.selectedZone = z;
+          document.querySelectorAll('.ndt-zone-btn').forEach((b) => {
+            const active = b === btn;
+            b.className = active
+              ? 'ndt-zone-btn py-1.5 rounded-lg text-xs font-extrabold border-2 border-purple-600 bg-purple-600 text-white shadow-sm transition'
+              : 'ndt-zone-btn py-1.5 rounded-lg text-xs font-extrabold border border-purple-300 bg-white text-purple-900 hover:bg-purple-100 transition';
+          });
+        });
+      });
+
+      document.getElementById('ndt-guess-btn').addEventListener('click', () => {
+        const ndt = AppState.ndt;
+        const fb = document.getElementById('ndt-guess-feedback');
+        const selectedZone = ndt.selectedZone;
+        const rawDepth = document.getElementById('ndt-guess-input').value.trim();
+
+        if (!selectedZone && rawDepth === '') {
+          MathRenderer.setHTML(fb, `<span class="text-rose-600">먼저 발표한 <strong>구역(A~J)</strong>을 선택하거나 깊이 $d$를 입력해 주세요.</span>`);
+          return;
+        }
+
+        const zoneCorrect = selectedZone === ndt.mysteryZone;
+        const parsedDepth = parseFloat(rawDepth);
+        const depthProvided = rawDepth !== '' && !Number.isNaN(parsedDepth);
+        const depthCorrect = depthProvided && Math.abs(parsedDepth - ndt.mysteryDepthMM) <= 3.0;
+
+        if (zoneCorrect && (!depthProvided || depthCorrect)) {
+          ndt.mysteryRevealed = true;
+          NDTSim.updateUI();
+          SoundFX.ping(1200, 0.12);
+          MathRenderer.setHTML(
+            fb,
+            `<span class="text-emerald-700 font-bold">🎉 정답입니다! 결함은 <strong>${ndt.mysteryZone} 구역</strong>, 깊이 $d = ${ndt.mysteryDepthMM.toFixed(1)}\\text{ mm}$ 위치에 있습니다!</span>`
+          );
+        } else if (zoneCorrect && depthProvided && !depthCorrect) {
+          MathRenderer.setHTML(
+            fb,
+            `<span class="text-amber-700 font-bold">⭕ 구역(${selectedZone} 구역)은 맞았습니다! 깊이 $d = \\frac{1}{2}v\\Delta t_d$ 계산을 다시 확인해 보세요.</span>`
+          );
+        } else {
+          MathRenderer.setHTML(
+            fb,
+            `<span class="text-rose-600 font-bold">❌ 선택한 <strong>${selectedZone || '?'} 구역</strong>에는 결함이 없습니다. 탐촉자로 다른 구역을 더 스캔해 보세요!</span>`
+          );
+        }
+      });
+
+      document.getElementById('ndt-reveal-btn').addEventListener('click', () => {
+        const ndt = AppState.ndt;
+        const fb = document.getElementById('ndt-guess-feedback');
+        ndt.mysteryRevealed = true;
+        NDTSim.updateUI();
+        MathRenderer.setHTML(
+          fb,
+          `<span class="text-purple-900 font-bold">📢 [정답 공개] 결함 위치는 <strong>${ndt.mysteryZone} 구역</strong>, 깊이 $d = ${ndt.mysteryDepthMM.toFixed(1)}\\text{ mm}$입니다.</span>`
+        );
+      });
+
+      // --- [탭 3] 이벤트 ---
+      document.querySelectorAll('.seis-step-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          AppState.seismic.stepMode = parseInt(btn.getAttribute('data-seis-step'), 10);
+          document.querySelectorAll('.seis-step-btn').forEach((b) => {
+            const active = b === btn;
+            b.className = active
+              ? 'seis-step-btn py-2 px-3 rounded-xl text-xs font-bold border-2 border-indigo-500 bg-indigo-50 text-indigo-900 text-left transition flex items-center justify-between'
+              : 'seis-step-btn py-2 px-3 rounded-xl text-xs font-bold border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 text-left transition flex items-center justify-between';
+          });
+        });
+      });
+
+      document.querySelectorAll('.seis-geo-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          AppState.seismic.geoType = btn.getAttribute('data-seis-geo');
+          document.querySelectorAll('.seis-geo-btn').forEach((b) => {
+            const active = b === btn;
+            b.className = active
+              ? 'seis-geo-btn p-2.5 rounded-xl border-2 border-indigo-500 bg-indigo-50 text-left transition'
+              : 'seis-geo-btn p-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-indigo-50 text-left transition';
+          });
+          SeismicSim.updateUI();
+        });
+      });
+
+      document.querySelectorAll('.seis-view-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          AppState.seismic.viewMode = btn.getAttribute('data-seis-view');
+          document.querySelectorAll('.seis-view-btn').forEach((b) => {
+            const active = b === btn;
+            b.className = active
+              ? 'seis-view-btn px-2.5 py-1 rounded-lg text-xs font-bold bg-white text-slate-900 shadow-sm'
+              : 'seis-view-btn px-2.5 py-1 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900';
+          });
+        });
+      });
+
+      document.getElementById('seis-btn-shoot').addEventListener('click', () => {
+        AppState.seismic.stepMode = 0;
+        AppState.seismic.phase = 0;
+        AppState.seismic.running = true;
+        document.getElementById('seis-btn-toggle').textContent = '일시정지';
+        SoundFX.ping(220, 0.1);
+      });
+
+      document.getElementById('seis-btn-toggle').addEventListener('click', (e) => {
+        AppState.seismic.running = !AppState.seismic.running;
+        e.target.textContent = AppState.seismic.running ? '일시정지' : '재생 재개';
+      });
+    }
+
+    // 페이지 로드 완료 시 초기화
+    window.onload = function () {
+      MathRenderer.renderAll(document.body);
+
+      setupResponsiveCanvas(document.getElementById('canvas-us-anatomy'), (w, h) => UltrasoundSim.drawAnatomyCanvas(w, h));
+      setupResponsiveCanvas(document.getElementById('canvas-us-monitor'), (w, h) => UltrasoundSim.drawMonitorCanvas(w, h));
+      setupResponsiveCanvas(document.getElementById('canvas-ndt-beam'), (w, h) => NDTSim.drawBeamCanvas(w, h));
+      setupResponsiveCanvas(document.getElementById('canvas-ndt-scope'), (w, h) => NDTSim.drawScopeCanvas(w, h));
+      setupResponsiveCanvas(document.getElementById('canvas-seis-cross'), (w, h) => SeismicSim.drawCrossCanvas(w, h));
+      setupResponsiveCanvas(document.getElementById('canvas-seis-record'), (w, h) => SeismicSim.drawRecordCanvas(w, h));
+
+      initInteractions();
+      UltrasoundSim.updateUI();
+      NDTSim.updateUI();
+      SeismicSim.updateUI();
+
+      AppState.lastTime = performance.now();
+      requestAnimationFrame(animateLoop);
+    };
+  </script>
+</body>
+</html>
